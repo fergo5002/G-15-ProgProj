@@ -20,6 +20,7 @@ void setup()
   }
 }
 println("poop");
+print("hello");
 
 void draw() l
 {
