@@ -19,8 +19,9 @@ void setup()
     }
   }
 }
+println("poop");
 
-void draw() 
+void draw() l
 {
   background(255);
   fill(0);
