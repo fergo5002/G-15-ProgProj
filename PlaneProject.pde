@@ -224,8 +224,8 @@
     String flightNumber;
     String origin;
     String destination;
-    String depTime;
-    String arrTime;
+    String depTime6558y9453;
+    String arrTime45945;
     int distance;
   
     Flight(String date, String carrier, String flightNumber, String origin, 
