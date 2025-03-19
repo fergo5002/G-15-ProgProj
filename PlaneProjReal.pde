@@ -65,22 +65,18 @@ void draw()
 
 // New function to display the homepage
 void displayHomepage() {
-  background(25, 25, 112); // Dark blue background for homepage
+  background(25, 25, 112); 
   
-  // FlyRadar logo/title
   fill(255);
   textSize(80);
   textAlign(CENTER, CENTER);
   text("FlyRadar", SCREENX/2, SCREENY/2 - 100);
   
-  // Subtitle
   textSize(24);
   text("Flight Data Visualization Tool", SCREENX/2, SCREENY/2 - 40);
   
-  // Start button
   startButton.display();
   
-  // Flash effect (pulsating subtitle)
   float pulseValue = 128 + 127 * sin(frameCount * 0.05);
   fill(pulseValue);
   textSize(18);
@@ -113,7 +109,6 @@ void displayFlights()
     yOffset += 25;
   }
   
-  // Display scroll instructions
   fill(100);
   textSize(12);
   text("Use mouse wheel to scroll", SCREENX - 200, SCREENY - 20);
@@ -140,19 +135,15 @@ void mousePressed()
   }
 }
 
-// Fix for scrolling function
 void mouseWheel(MouseEvent event) {
   float e = event.getCount();
   if (showFlights && !dropdown.expanded) {
-    // Adjust scroll speed and direction
     scrollOffset += e * 15;
     
-    // Prevent scrolling too far up
     if (scrollOffset < 0) {
       scrollOffset = 0;
     }
     
-    // Calculate maximum scroll based on data rows
     int dataRowCount = 0;
     for (int i = 0; i < table.getRowCount(); i++) {
       String carrier = table.getString(i, "MKT_CARRIER");
@@ -164,7 +155,6 @@ void mouseWheel(MouseEvent event) {
     int maxScroll = dataRowCount * 25 - (SCREENY - 130);
     if (maxScroll < 0) maxScroll = 0;
     
-    // Prevent scrolling too far down
     if (scrollOffset > maxScroll) {
       scrollOffset = maxScroll;
     }
