@@ -6,11 +6,11 @@ int scrollOffset = 0;
 int SCREENX = 980;
 int SCREENY = 980;
 boolean showChart = false;
-boolean showHome = true;   // New variable to control homepage display
-boolean showFlights = false; // New variable to control flight listing page
+boolean showHome = true;   
+boolean showFlights = false; 
 ButtonWidget chartButton;
 ButtonWidget backButton;
-ButtonWidget startButton; // New button for homepage
+ButtonWidget startButton; 
 
 void settings() 
 {
@@ -19,7 +19,7 @@ void settings()
 
 void setup() 
 {
-  table = loadTable("flights_full.csv", "header");
+  table = loadTable("flights.csv", "header");
   dropdown = new DropdownWidget(140, 10, 150, 25);
   dropdown.addOption("ALL");
 
@@ -35,26 +35,32 @@ void setup()
   barChart = new BarChartWidget(100, 100, SCREENX - 200, SCREENY - 300, table);
   chartButton = new ButtonWidget(700, 10, 200, 30, "View Chart");
   backButton = new ButtonWidget(50, 10, 100, 30, "Back");
-  startButton = new ButtonWidget(SCREENX/2 - 100, SCREENY/2 + 50, 200, 50, "Start FlyRadar"); // New start button
+  startButton = new ButtonWidget(SCREENX/2 - 100, SCREENY/2 + 50, 200, 50, "Start FlyRadar"); 
 }
 
 void draw() 
 {
   background(255); 
   
-  if (showHome) {
+  if (showHome) 
+  {
     displayHomepage();
-  } else if (showChart) {
+  } 
+  else if (showChart) 
+  {
     background(240);
     barChart.display();
     backButton.display();
-  } else if (showFlights) {
+  } 
+  else if (showFlights) 
+  {
     fill(0);
     textSize(14);
     textAlign(LEFT); 
     text("Select Airline:", 50, 30);
     
-    if (!dropdown.expanded) {
+    if (!dropdown.expanded) 
+    {
       displayFlights();
     }
     
@@ -63,8 +69,8 @@ void draw()
   }
 }
 
-// New function to display the homepage
-void displayHomepage() {
+void displayHomepage() 
+{
   background(25, 25, 112); 
   
   fill(255);
@@ -116,38 +122,49 @@ void displayFlights()
 
 void mousePressed() 
 {
-  if (showHome) {
-    if (startButton.isClicked(mouseX, mouseY)) {
+  if (showHome) 
+  {
+    if (startButton.isClicked(mouseX, mouseY)) 
+    {
       showHome = false;
       showFlights = true;
     }
-  } else if (showChart) {
-    if (backButton.isClicked(mouseX, mouseY)) {
+  } else if (showChart) 
+  {
+    if (backButton.isClicked(mouseX, mouseY)) 
+    {
       showChart = false;
       showFlights = true;
     }
-  } else if (showFlights) {
+  } else if (showFlights) 
+  {
     dropdown.checkClick(mouseX, mouseY);
-    if (chartButton.isClicked(mouseX, mouseY)) {
+    if (chartButton.isClicked(mouseX, mouseY)) 
+    {
       showChart = true;
       showFlights = false;
     }
   }
 }
 
-void mouseWheel(MouseEvent event) {
+void mouseWheel(MouseEvent event) 
+{
   float e = event.getCount();
-  if (showFlights && !dropdown.expanded) {
+  if (showFlights && !dropdown.expanded)
+  {
     scrollOffset += e * 15;
     
-    if (scrollOffset < 0) {
+    if (scrollOffset < 0) 
+    {
       scrollOffset = 0;
     }
     
     int dataRowCount = 0;
-    for (int i = 0; i < table.getRowCount(); i++) {
+    for (int i = 0; i < table.getRowCount(); i++) 
+    {
       String carrier = table.getString(i, "MKT_CARRIER");
-      if (selectedCarrier.equals("ALL") || carrier.equals(selectedCarrier)) {
+      if (selectedCarrier.equals("ALL") || carrier.equals(selectedCarrier)) 
+      {
         dataRowCount++;
       }
     }
@@ -155,7 +172,8 @@ void mouseWheel(MouseEvent event) {
     int maxScroll = dataRowCount * 25 - (SCREENY - 130);
     if (maxScroll < 0) maxScroll = 0;
     
-    if (scrollOffset > maxScroll) {
+    if (scrollOffset > maxScroll) 
+    {
       scrollOffset = maxScroll;
     }
   }
@@ -304,17 +322,22 @@ class ButtonWidget
   }
 
   void display() 
-  {
-    fill(50, 150, 50);
+{
+    if (label.equals("Back")) 
+    {
+        fill(200, 50, 50); 
+    } else {
+        fill(50, 150, 50); 
+    }
+    
     rect(x, y, w, h, 5);
     fill(255);
     textSize(14);
     textAlign(CENTER, CENTER);
     text(label, x + w / 2, y + h / 2);
-  }
+}
 
   boolean isClicked(int mx, int my) 
   {
     return mx > x && mx < x + w && my > y && my < y + h;
   }
-}
