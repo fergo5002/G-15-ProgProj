@@ -6,11 +6,11 @@ int scrollOffset = 0;
 int SCREENX = 980;
 int SCREENY = 980;
 boolean showChart = false;
-boolean showHome = true;   // New variable to control homepage display
-boolean showFlights = false; // New variable to control flight listing page
+boolean showHome = true;   
+boolean showFlights = false; 
 ButtonWidget chartButton;
 ButtonWidget backButton;
-ButtonWidget startButton; // New button for homepage
+ButtonWidget startButton; 
 
 void settings() 
 {
@@ -35,7 +35,7 @@ void setup()
   barChart = new BarChartWidget(100, 100, SCREENX - 200, SCREENY - 300, table);
   chartButton = new ButtonWidget(700, 10, 200, 30, "View Chart");
   backButton = new ButtonWidget(50, 10, 100, 30, "Back");
-  startButton = new ButtonWidget(SCREENX/2 - 100, SCREENY/2 + 50, 200, 50, "Start FlyRadar"); // New start button
+  startButton = new ButtonWidget(SCREENX/2 - 100, SCREENY/2 + 50, 200, 50, "Start FlyRadar"); 
 }
 
 void draw() 
@@ -63,8 +63,9 @@ void draw()
   }
 }
 
-// New function to display the homepage
-void displayHomepage() {
+
+void displayHomepage()
+{
   background(25, 25, 112); 
   
   fill(255);
@@ -135,19 +136,24 @@ void mousePressed()
   }
 }
 
-void mouseWheel(MouseEvent event) {
+void mouseWheel(MouseEvent event) 
+{
   float e = event.getCount();
-  if (showFlights && !dropdown.expanded) {
+  if (showFlights && !dropdown.expanded)
+  {
     scrollOffset += e * 15;
     
-    if (scrollOffset < 0) {
+    if (scrollOffset < 0) 
+    {
       scrollOffset = 0;
     }
     
     int dataRowCount = 0;
-    for (int i = 0; i < table.getRowCount(); i++) {
+    for (int i = 0; i < table.getRowCount(); i++) 
+    {
       String carrier = table.getString(i, "MKT_CARRIER");
-      if (selectedCarrier.equals("ALL") || carrier.equals(selectedCarrier)) {
+      if (selectedCarrier.equals("ALL") || carrier.equals(selectedCarrier)) 
+      {
         dataRowCount++;
       }
     }
@@ -155,7 +161,8 @@ void mouseWheel(MouseEvent event) {
     int maxScroll = dataRowCount * 25 - (SCREENY - 130);
     if (maxScroll < 0) maxScroll = 0;
     
-    if (scrollOffset > maxScroll) {
+    if (scrollOffset > maxScroll) 
+    {
       scrollOffset = maxScroll;
     }
   }
