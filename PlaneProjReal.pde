@@ -22,17 +22,7 @@ void setup() {
     }
   }
 }
-<<<<<<< HEAD:Week1.pde
 
-
-void draw() 
-void draw() 
-=======
-println("poop");
-print("hello");
-
-void draw() l
->>>>>>> 8427598e31ffab11868eade4aba9c8e7fc6dbe82:PlaneProjReal.pde
 {
   background(255);
   fill(0);
