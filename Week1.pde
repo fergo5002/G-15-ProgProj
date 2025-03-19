@@ -19,6 +19,11 @@ void setup()
     }
   }
 }
+<<<<<<< HEAD
+=======
+println("poop");
+print("hello");
+>>>>>>> e3c5cdafc0a2840fdcfc6a0db3dadaed2ca166b7
 
 void draw() l
 {
@@ -58,7 +63,7 @@ void displayFlights()
     yOffset += 25;
   }
 }
-
+println("poo") 
 
 void mousePressed() 
 {
@@ -114,6 +119,11 @@ class DropdownWidget
         text(options.get(i), x + 10, y + (i + 2) * h - 5);
       }
     }
+  }
+
+  void planeFinder()
+  {
+   //poop poop poop
   }
 
   void checkClick(int mx, int my) 
