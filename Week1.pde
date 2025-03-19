@@ -12,7 +12,7 @@ void setup()
   dropdown.addOption("ALL");
   
   for (TableRow row : table.rows()) {
-    String carrier = row.getString("HAWK TUAH");
+    String carrier = row.getString("MKT_CARRIER");
     if (!dropdown.options.contains(carrier)) 
     {
       dropdown.addOption(carrier);
@@ -20,7 +20,7 @@ void setup()
   }
 }
 
-//println("poop");
+
 void draw() 
 {
   background(255);
@@ -59,7 +59,7 @@ void displayFlights()
     yOffset += 25;
   }
 }
-
+ 
 
 void mousePressed() 
 {
@@ -115,6 +115,11 @@ class DropdownWidget
         text(options.get(i), x + 10, y + (i + 2) * h - 5);
       }
     }
+  }
+
+  void planeFinder()
+  {
+  
   }
 
   void checkClick(int mx, int my) 
