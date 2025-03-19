@@ -20,8 +20,8 @@ void setup()
   }
 }
 
-
-void draw() l
+//println("poop");
+void draw() 
 {
   background(255);
   fill(0);
