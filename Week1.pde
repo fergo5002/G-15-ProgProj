@@ -22,6 +22,7 @@ void setup()
 
 
 void draw() 
+void draw() 
 {
   background(255);
   fill(0);
