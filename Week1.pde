@@ -12,14 +12,13 @@ void setup()
   dropdown.addOption("ALL");
   
   for (TableRow row : table.rows()) {
-    String carrier = row.getString("HAWK TUAH");
+    String carrier = row.getString("MKT_CARRIER");
     if (!dropdown.options.contains(carrier)) 
     {
       dropdown.addOption(carrier);
     }
   }
 }
-
 
 void draw() l
 {
