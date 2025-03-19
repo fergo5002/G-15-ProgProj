@@ -22,7 +22,7 @@ void setup()
 println("poop");
 print("hello");
 
-void draw() l
+void draw() 
 {
   background(255);
   fill(0);
