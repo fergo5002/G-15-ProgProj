@@ -5,13 +5,13 @@ int scrollOffset = 0;
 int SCREENX = 980;
 int SCREENY = 980;
 
-void settings() {
+void settings()
+ {
   size(SCREENX, SCREENY);
 }
 
 void setup() {
   table = loadTable("flights_full.csv", "header");
-
   dropdown = new DropdownWidget(140, 10, 150, 25);
   dropdown.addOption("ALL");
   
@@ -22,8 +22,11 @@ void setup() {
     }
   }
 }
+println("poop");
+print("hello");
 
-void draw() {
+void draw() l
+{
   background(255);
   fill(0);
   textSize(14);
@@ -103,6 +106,11 @@ class DropdownWidget {
         text(options.get(i), x + 10, y + (i + 2) * h - 5);
       }
     }
+  }
+
+  void planeFinder()
+  {
+   //poop poop poop
   }
 
   void checkClick(int mx, int my) {
