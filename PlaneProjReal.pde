@@ -6,8 +6,11 @@ int scrollOffset = 0;
 int SCREENX = 980;
 int SCREENY = 980;
 boolean showChart = false;
+boolean showHome = true;   // New variable to control homepage display
+boolean showFlights = false; // New variable to control flight listing page
 ButtonWidget chartButton;
 ButtonWidget backButton;
+ButtonWidget startButton; // New button for homepage
 
 void settings() 
 {
@@ -30,34 +33,58 @@ void setup()
   }
 
   barChart = new BarChartWidget(100, 100, SCREENX - 200, SCREENY - 300, table);
-
   chartButton = new ButtonWidget(700, 10, 200, 30, "View Chart");
   backButton = new ButtonWidget(50, 10, 100, 30, "Back");
+  startButton = new ButtonWidget(SCREENX/2 - 100, SCREENY/2 + 50, 200, 50, "Start FlyRadar"); // New start button
 }
 
 void draw() 
 {
   background(255); 
   
-  fill(0);
-  textSize(14);
-
-  if (showChart) 
-  {
+  if (showHome) {
+    displayHomepage();
+  } else if (showChart) {
     background(240);
     barChart.display();
     backButton.display();
-  } else 
-  {
+  } else if (showFlights) {
+    fill(0);
+    textSize(14);
     textAlign(LEFT); 
     text("Select Airline:", 50, 30);
-    if (!dropdown.expanded) 
-    {
+    
+    if (!dropdown.expanded) {
       displayFlights();
     }
+    
     dropdown.display();
     chartButton.display();
   }
+}
+
+// New function to display the homepage
+void displayHomepage() {
+  background(25, 25, 112); // Dark blue background for homepage
+  
+  // FlyRadar logo/title
+  fill(255);
+  textSize(80);
+  textAlign(CENTER, CENTER);
+  text("FlyRadar", SCREENX/2, SCREENY/2 - 100);
+  
+  // Subtitle
+  textSize(24);
+  text("Flight Data Visualization Tool", SCREENX/2, SCREENY/2 - 40);
+  
+  // Start button
+  startButton.display();
+  
+  // Flash effect (pulsating subtitle)
+  float pulseValue = 128 + 127 * sin(frameCount * 0.05);
+  fill(pulseValue);
+  textSize(18);
+  text("Click Start to Explore Flight Data", SCREENX/2, SCREENY/2 + 150);
 }
 
 void displayFlights() 
@@ -65,6 +92,7 @@ void displayFlights()
   text("Filtered Flights:", 50, 80);
   int yOffset = 110 - scrollOffset;
   int maxY = SCREENY - 20; 
+  int visibleCount = 0;
 
   for (int i = 0; i < table.getRowCount(); i++) 
   {
@@ -80,25 +108,65 @@ void displayFlights()
       float distance = table.getFloat(i, "DISTANCE");
 
       text(date + " | " + carrier + flightNum + " | " + origin + " → " + dest + " | " + distance + " miles", 50, yOffset);
+      visibleCount++;
     }
     yOffset += 25;
   }
+  
+  // Display scroll instructions
+  fill(100);
+  textSize(12);
+  text("Use mouse wheel to scroll", SCREENX - 200, SCREENY - 20);
 }
 
 void mousePressed() 
 {
-  if (showChart) 
-  {
-    if (backButton.isClicked(mouseX, mouseY)) 
-    {
-      showChart = false; 
+  if (showHome) {
+    if (startButton.isClicked(mouseX, mouseY)) {
+      showHome = false;
+      showFlights = true;
     }
-  } else 
-  {
+  } else if (showChart) {
+    if (backButton.isClicked(mouseX, mouseY)) {
+      showChart = false;
+      showFlights = true;
+    }
+  } else if (showFlights) {
     dropdown.checkClick(mouseX, mouseY);
-    if (chartButton.isClicked(mouseX, mouseY)) 
-    {
+    if (chartButton.isClicked(mouseX, mouseY)) {
       showChart = true;
+      showFlights = false;
+    }
+  }
+}
+
+// Fix for scrolling function
+void mouseWheel(MouseEvent event) {
+  float e = event.getCount();
+  if (showFlights && !dropdown.expanded) {
+    // Adjust scroll speed and direction
+    scrollOffset += e * 15;
+    
+    // Prevent scrolling too far up
+    if (scrollOffset < 0) {
+      scrollOffset = 0;
+    }
+    
+    // Calculate maximum scroll based on data rows
+    int dataRowCount = 0;
+    for (int i = 0; i < table.getRowCount(); i++) {
+      String carrier = table.getString(i, "MKT_CARRIER");
+      if (selectedCarrier.equals("ALL") || carrier.equals(selectedCarrier)) {
+        dataRowCount++;
+      }
+    }
+    
+    int maxScroll = dataRowCount * 25 - (SCREENY - 130);
+    if (maxScroll < 0) maxScroll = 0;
+    
+    // Prevent scrolling too far down
+    if (scrollOffset > maxScroll) {
+      scrollOffset = maxScroll;
     }
   }
 }
