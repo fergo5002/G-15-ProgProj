@@ -11,10 +11,14 @@ boolean showFlights = false;
 ButtonWidget chartButton;
 ButtonWidget backButton;
 ButtonWidget startButton; 
+PImage plane;
 
 void settings() 
 {
   size(SCREENX, SCREENY);
+  plane = loadImage("plane-photo(1).jpg");
+  plane.resize(SCREENX, SCREENY);
+  
 }
 
 void setup() 
@@ -69,11 +73,13 @@ void draw()
   }
 }
 
-
-void displayHomepage()
 void displayHomepage() 
 {
   background(25, 25, 112); 
+  image(plane, 0, 0);
+  
+  fill(0, 0, 50, 100);
+  rect(0, 0, SCREENX, SCREENY);
   
   fill(255);
   textSize(80);
@@ -81,7 +87,7 @@ void displayHomepage()
   text("FlyRadar", SCREENX/2, SCREENY/2 - 100);
   
   textSize(24);
-  text("Flight Data Visualization Tool Made By Group 15", SCREENX/2, SCREENY/2 - 40);
+  text("Flight Data Visualization Tool", SCREENX/2, SCREENY/2 - 40);
   
   startButton.display();
   
