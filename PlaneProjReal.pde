@@ -8,9 +8,11 @@ int SCREENY = 980;
 boolean showChart = false;
 boolean showHome = true;   
 boolean showFlights = false; 
+boolean showCancelled = true; 
 ButtonWidget chartButton;
 ButtonWidget backButton;
 ButtonWidget startButton; 
+ButtonWidget cancelFilterButton;
 PImage plane;
 
 void settings() 
@@ -40,6 +42,7 @@ void setup()
   chartButton = new ButtonWidget(700, 10, 200, 30, "View Chart");
   backButton = new ButtonWidget(50, 10, 100, 30, "Back");
   startButton = new ButtonWidget(SCREENX/2 - 100, SCREENY/2 + 50, 200, 50, "Start FlyRadar"); 
+  cancelFilterButton = new ButtonWidget(450, 10, 200, 30, "Hide Cancelled"); 
 }
 
 void draw() 
@@ -70,6 +73,13 @@ void draw()
     
     dropdown.display();
     chartButton.display();
+    cancelFilterButton.display(); 
+    
+    fill(100);
+    textSize(12);
+    textAlign(RIGHT);
+    text("Showing " + (showCancelled ? "all flights" : "only non-cancelled flights"), 
+         cancelFilterButton.x - 10, cancelFilterButton.y + 20);
   }
 }
 
@@ -106,18 +116,32 @@ void displayFlights()
 
   for (int i = 0; i < table.getRowCount(); i++) 
   {
-    String carrier = table.getString(i, "MKT_CARRIER");
-    if (!selectedCarrier.equals("ALL") && !carrier.equals(selectedCarrier)) continue; 
+    TableRow row = table.getRow(i);
+    String carrier = row.getString("MKT_CARRIER");
+    int cancelled = row.getInt("CANCELLED");
+    
+    if (!selectedCarrier.equals("ALL") && !carrier.equals(selectedCarrier)) continue;
+    
+    if (!showCancelled && cancelled == 1) continue;
 
     if (yOffset > 90 && yOffset < maxY) 
     { 
-      String date = table.getString(i, "FL_DATE");
-      int flightNum = table.getInt(i, "MKT_CARRIER_FL_NUM");
-      String origin = table.getString(i, "ORIGIN");
-      String dest = table.getString(i, "DEST");
-      float distance = table.getFloat(i, "DISTANCE");
+      String date = row.getString("FL_DATE");
+      int flightNum = row.getInt("MKT_CARRIER_FL_NUM");
+      String origin = row.getString("ORIGIN");
+      String dest = row.getString("DEST");
+      float distance = row.getFloat("DISTANCE");
 
-      text(date + " | " + carrier + flightNum + " | " + origin + " → " + dest + " | " + distance + " miles", 50, yOffset);
+      String flightInfo = date + " | " + carrier + flightNum + " | " + origin + " → " + dest + " | " + distance + " miles";
+      
+      if (cancelled == 1) {
+        fill(255, 0, 0); 
+        flightInfo += " [CANCELLED]";
+      } else {
+        fill(0); 
+      }
+
+      text(flightInfo, 50, yOffset);
       visibleCount++;
     }
     yOffset += 25;
@@ -152,6 +176,13 @@ void mousePressed()
       showChart = true;
       showFlights = false;
     }
+    
+    if (cancelFilterButton.isClicked(mouseX, mouseY)) 
+    {
+      showCancelled = !showCancelled;
+      cancelFilterButton.label = showCancelled ? "Hide Cancelled" : "Show All Flights";
+      scrollOffset = 0; 
+    }
   }
 }
 
@@ -160,7 +191,7 @@ void mouseWheel(MouseEvent event)
   float e = event.getCount();
   if (showFlights && !dropdown.expanded)
   {
-    scrollOffset += e * 15;
+    scrollOffset += e * 15;  
     
     if (scrollOffset < 0) 
     {
@@ -170,8 +201,12 @@ void mouseWheel(MouseEvent event)
     int dataRowCount = 0;
     for (int i = 0; i < table.getRowCount(); i++) 
     {
-      String carrier = table.getString(i, "MKT_CARRIER");
-      if (selectedCarrier.equals("ALL") || carrier.equals(selectedCarrier)) 
+      TableRow row = table.getRow(i);
+      String carrier = row.getString("MKT_CARRIER");
+      int cancelled = row.getInt("CANCELLED");
+      
+      if ((selectedCarrier.equals("ALL") || carrier.equals(selectedCarrier)) &&
+          (showCancelled || cancelled == 0)) 
       {
         dataRowCount++;
       }
@@ -191,6 +226,7 @@ class BarChartWidget
 {
   int x, y, w, h;
   HashMap<String, Integer> flightCounts;
+  HashMap<String, Integer> cancelledCounts;
   int maxFlights;
 
   BarChartWidget(int x, int y, int w, int h, Table table) 
@@ -200,11 +236,18 @@ class BarChartWidget
     this.w = w;
     this.h = h;
     this.flightCounts = new HashMap<>();
+    this.cancelledCounts = new HashMap<>();
 
     for (TableRow row : table.rows()) 
     {
       String carrier = row.getString("MKT_CARRIER");
+      int cancelled = row.getInt("CANCELLED");
+      
       flightCounts.put(carrier, flightCounts.getOrDefault(carrier, 0) + 1);
+      
+      if (cancelled == 1) {
+        cancelledCounts.put(carrier, cancelledCounts.getOrDefault(carrier, 0) + 1);
+      }
     }
 
     maxFlights = 0;
@@ -233,19 +276,45 @@ class BarChartWidget
     for (String carrier : flightCounts.keySet()) 
     {
       int flights = flightCounts.get(carrier);
+      int cancelled = cancelledCounts.getOrDefault(carrier, 0);
       int barHeight = int(map(flights, 0, maxFlights, 0, h - 100));
+      int cancelledHeight = int(map(cancelled, 0, maxFlights, 0, h - 100));
 
       fill(100, 100, 255);
       rect(startX + index * barWidth, y + h - barHeight, barWidth - 5, barHeight);
+
+      fill(255, 100, 100);
+      rect(startX + index * barWidth, y + h - barHeight, barWidth - 5, cancelledHeight);
 
       fill(0);
       textSize(12);
       textAlign(CENTER);
       text(carrier, startX + index * barWidth + barWidth / 2, y + h + 20);
       text(flights, startX + index * barWidth + barWidth / 2, y + h - barHeight - 5);
+      
+      if (cancelled > 0) {
+        fill(255, 0, 0);
+        text("(" + cancelled + " canc.)", startX + index * barWidth + barWidth / 2, y + h - barHeight - 20);
+      }
 
       index++;
     }
+    
+    // Add a legend
+    fill(0);
+    textSize(12);
+    textAlign(LEFT);
+    text("Legend:", SCREENX - 150, 100);
+    
+    fill(100, 100, 255);
+    rect(SCREENX - 150, 110, 15, 15);
+    fill(0);
+    text("All Flights", SCREENX - 130, 123);
+    
+    fill(255, 100, 100);
+    rect(SCREENX - 150, 135, 15, 15);
+    fill(0);
+    text("Cancelled", SCREENX - 130, 148);
   }
 }
 
@@ -334,7 +403,12 @@ class ButtonWidget
     if (label.equals("Back")) 
     {
         fill(200, 50, 50); 
-    } else {
+    } 
+    else if (label.contains("Cancelled") || label.contains("Show All")) 
+    {
+        fill(50, 100, 200); 
+    }
+    else {
         fill(50, 150, 50); 
     }
     
