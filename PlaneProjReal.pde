@@ -19,7 +19,7 @@ void settings()
 
 void setup() 
 {
-  table = loadTable("flights_full.csv", "header");
+  table = loadTable("flights.csv", "header");
   dropdown = new DropdownWidget(140, 10, 150, 25);
   dropdown.addOption("ALL");
 
@@ -42,19 +42,25 @@ void draw()
 {
   background(255); 
   
-  if (showHome) {
+  if (showHome) 
+  {
     displayHomepage();
-  } else if (showChart) {
+  } 
+  else if (showChart) 
+  {
     background(240);
     barChart.display();
     backButton.display();
-  } else if (showFlights) {
+  } 
+  else if (showFlights) 
+  {
     fill(0);
     textSize(14);
     textAlign(LEFT); 
     text("Select Airline:", 50, 30);
     
-    if (!dropdown.expanded) {
+    if (!dropdown.expanded) 
+    {
       displayFlights();
     }
     
@@ -65,6 +71,7 @@ void draw()
 
 
 void displayHomepage()
+void displayHomepage() 
 {
   background(25, 25, 112); 
   
@@ -117,19 +124,25 @@ void displayFlights()
 
 void mousePressed() 
 {
-  if (showHome) {
-    if (startButton.isClicked(mouseX, mouseY)) {
+  if (showHome) 
+  {
+    if (startButton.isClicked(mouseX, mouseY)) 
+    {
       showHome = false;
       showFlights = true;
     }
-  } else if (showChart) {
-    if (backButton.isClicked(mouseX, mouseY)) {
+  } else if (showChart) 
+  {
+    if (backButton.isClicked(mouseX, mouseY)) 
+    {
       showChart = false;
       showFlights = true;
     }
-  } else if (showFlights) {
+  } else if (showFlights) 
+  {
     dropdown.checkClick(mouseX, mouseY);
-    if (chartButton.isClicked(mouseX, mouseY)) {
+    if (chartButton.isClicked(mouseX, mouseY)) 
+    {
       showChart = true;
       showFlights = false;
     }
@@ -311,14 +324,20 @@ class ButtonWidget
   }
 
   void display() 
-  {
-    fill(50, 150, 50);
+{
+    if (label.equals("Back")) 
+    {
+        fill(200, 50, 50); 
+    } else {
+        fill(50, 150, 50); 
+    }
+    
     rect(x, y, w, h, 5);
     fill(255);
     textSize(14);
     textAlign(CENTER, CENTER);
     text(label, x + w / 2, y + h / 2);
-  }
+}
 
   boolean isClicked(int mx, int my) 
   {
