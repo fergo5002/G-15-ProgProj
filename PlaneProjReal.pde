@@ -341,3 +341,4 @@ class ButtonWidget
   {
     return mx > x && mx < x + w && my > y && my < y + h;
   }
+}
