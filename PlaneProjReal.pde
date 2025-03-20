@@ -81,7 +81,7 @@ void displayHomepage()
   text("FlyRadar", SCREENX/2, SCREENY/2 - 100);
   
   textSize(24);
-  text("Flight Data Visualization Tool", SCREENX/2, SCREENY/2 - 40);
+  text("Flight Data Visualization Tool Made By Group 15", SCREENX/2, SCREENY/2 - 40);
   
   startButton.display();
   
