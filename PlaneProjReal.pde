@@ -2,7 +2,13 @@ Table table;
 DropdownWidget dropdown;
 BarChartWidget barChart; 
 String selectedCarrier = "ALL"; 
-int scrollOffset = 0; 
+float scrollOffset = 0;
+float targetScrollOffset = 0;
+float scrollVelocity = 0;
+float scrollFriction = 0.9; // Controls how quickly scrolling stops
+float scrollSensitivity = 15; // Controls how responsive the scrolling feels
+int cachedMaxScroll = 0;
+boolean needsRecalculation = true; // Flag to know when to recalculate
 int SCREENX = 980;
 int SCREENY = 980;
 boolean showChart = false;
@@ -20,7 +26,6 @@ void settings()
   size(SCREENX, SCREENY);
   plane = loadImage("plane-photo(1).jpg");
   plane.resize(SCREENX, SCREENY);
-  
 }
 
 void setup() 
@@ -61,6 +66,35 @@ void draw()
   } 
   else if (showFlights) 
   {
+    updateMaxScroll();
+    targetScrollOffset += scrollVelocity;
+    scrollVelocity *= scrollFriction;
+    
+    if (abs(scrollVelocity) < 0.1)
+    {
+      scrollVelocity = 0;
+    }
+ 
+    if (targetScrollOffset < 0) {
+      targetScrollOffset *= 0.5;
+      scrollVelocity = 0;
+    }
+    else if (targetScrollOffset > cachedMaxScroll) 
+    {
+      float overshoot = targetScrollOffset - cachedMaxScroll;
+      targetScrollOffset = cachedMaxScroll + overshoot * 0.5;
+      scrollVelocity = 0; 
+    }
+    
+  
+    float scrollDifference = targetScrollOffset - scrollOffset;
+    scrollOffset += scrollDifference * 0.5; 
+    
+   
+    if (abs(scrollDifference) < 0.1) {
+      scrollOffset = targetScrollOffset;
+    }
+    
     fill(0);
     textSize(14);
     textAlign(LEFT); 
@@ -110,9 +144,15 @@ void displayHomepage()
 void displayFlights() 
 {
   text("Filtered Flights:", 50, 80);
-  int yOffset = 110 - scrollOffset;
+  int yOffset = 110 - (int)scrollOffset;
   int maxY = SCREENY - 20; 
-  int visibleCount = 0;
+  int rowHeight = 25;
+  
+ 
+  int startIndex = max(0, (int)(scrollOffset / rowHeight));
+  int visibleRows = SCREENY / rowHeight + 2; 
+  int processedRows = 0;
+  int totalFilteredRows = 0;
 
   for (int i = 0; i < table.getRowCount(); i++) 
   {
@@ -120,31 +160,37 @@ void displayFlights()
     String carrier = row.getString("MKT_CARRIER");
     int cancelled = row.getInt("CANCELLED");
     
+    // Apply filters
     if (!selectedCarrier.equals("ALL") && !carrier.equals(selectedCarrier)) continue;
-    
     if (!showCancelled && cancelled == 1) continue;
+    
+    totalFilteredRows++;
+    
+    // Only process rows that might be visible (optimization)
+    if (totalFilteredRows >= startIndex && processedRows < visibleRows) {
+      if (yOffset > 90 && yOffset < maxY) { 
+        String date = row.getString("FL_DATE");
+        int flightNum = row.getInt("MKT_CARRIER_FL_NUM");
+        String origin = row.getString("ORIGIN");
+        String dest = row.getString("DEST");
+        float distance = row.getFloat("DISTANCE");
 
-    if (yOffset > 90 && yOffset < maxY) 
-    { 
-      String date = row.getString("FL_DATE");
-      int flightNum = row.getInt("MKT_CARRIER_FL_NUM");
-      String origin = row.getString("ORIGIN");
-      String dest = row.getString("DEST");
-      float distance = row.getFloat("DISTANCE");
+        String flightInfo = date + " | " + carrier + flightNum + " | " + origin + " → " + dest + " | " + distance + " miles";
+        
+        if (cancelled == 1) {
+          fill(255, 0, 0); 
+          flightInfo += " [CANCELLED]";
+        } else {
+          fill(0); 
+        }
 
-      String flightInfo = date + " | " + carrier + flightNum + " | " + origin + " → " + dest + " | " + distance + " miles";
-      
-      if (cancelled == 1) {
-        fill(255, 0, 0); 
-        flightInfo += " [CANCELLED]";
-      } else {
-        fill(0); 
+        text(flightInfo, 50, yOffset);
+       
       }
-
-      text(flightInfo, 50, yOffset);
-      visibleCount++;
+      processedRows++;
     }
-    yOffset += 25;
+    
+    yOffset += rowHeight;
   }
   
   fill(100);
@@ -181,45 +227,63 @@ void mousePressed()
     {
       showCancelled = !showCancelled;
       cancelFilterButton.label = showCancelled ? "Hide Cancelled" : "Show All Flights";
-      scrollOffset = 0; 
+      scrollOffset = 0;
+      targetScrollOffset = 0;
+      scrollVelocity = 0; // Reset velocity when changing filters
+      needsRecalculation = true; // Mark for recalculation
     }
   }
 }
 
 void mouseWheel(MouseEvent event) 
 {
-  float e = event.getCount();
   if (showFlights && !dropdown.expanded)
   {
-    scrollOffset += e * 15;  
+    float e = event.getCount();
+  
+    scrollVelocity += e * scrollSensitivity;
+    scrollVelocity = constrain(scrollVelocity, -100, 100);
+  }
+}
+
+void updateMaxScroll()
+{
+  if (!needsRecalculation) return;
+  
+  int dataRowCount = 0;
+  for (int i = 0; i < table.getRowCount(); i++) 
+  {
+    TableRow row = table.getRow(i);
+    String carrier = row.getString("MKT_CARRIER");
+    int cancelled = row.getInt("CANCELLED");
     
-    if (scrollOffset < 0) 
+    if ((selectedCarrier.equals("ALL") || carrier.equals(selectedCarrier)) &&
+        (showCancelled || cancelled == 0)) 
     {
-      scrollOffset = 0;
-    }
-    
-    int dataRowCount = 0;
-    for (int i = 0; i < table.getRowCount(); i++) 
-    {
-      TableRow row = table.getRow(i);
-      String carrier = row.getString("MKT_CARRIER");
-      int cancelled = row.getInt("CANCELLED");
-      
-      if ((selectedCarrier.equals("ALL") || carrier.equals(selectedCarrier)) &&
-          (showCancelled || cancelled == 0)) 
-      {
-        dataRowCount++;
-      }
-    }
-    
-    int maxScroll = dataRowCount * 25 - (SCREENY - 130);
-    if (maxScroll < 0) maxScroll = 0;
-    
-    if (scrollOffset > maxScroll) 
-    {
-      scrollOffset = maxScroll;
+      dataRowCount++;
     }
   }
+  
+  cachedMaxScroll = dataRowCount * 25 - (SCREENY - 130);
+  if (cachedMaxScroll < 0) cachedMaxScroll = 0;
+  
+  needsRecalculation = false;
+}
+
+// Custom color blending function for button hover effect
+color lerpColor(color c1, color c2, float amt) {
+  float r1 = red(c1);
+  float g1 = green(c1);
+  float b1 = blue(c1);
+  float r2 = red(c2);
+  float g2 = green(c2);
+  float b2 = blue(c2);
+  
+  return color(
+    r1 + (r2 - r1) * amt,
+    g1 + (g2 - g1) * amt,
+    b1 + (b2 - b1) * amt
+  );
 }
 
 class BarChartWidget 
@@ -300,7 +364,7 @@ class BarChartWidget
       index++;
     }
     
-    // Add a legend
+   
     fill(0);
     textSize(12);
     textAlign(LEFT);
@@ -378,6 +442,11 @@ class DropdownWidget
           selected = options.get(i);
           expanded = false;
           selectedCarrier = selected;
+          // Reset scroll position when changing filters
+          scrollOffset = 0;
+          targetScrollOffset = 0;
+          scrollVelocity = 0; // Also reset velocity
+          needsRecalculation = true; // Mark for recalculation
         }
       }
     }
@@ -399,7 +468,7 @@ class ButtonWidget
   }
 
   void display() 
-{
+  {
     if (label.equals("Back")) 
     {
         fill(200, 50, 50); 
@@ -412,12 +481,31 @@ class ButtonWidget
         fill(50, 150, 50); 
     }
     
+    
+    if (isHovered()) 
+    {
+   
+      fill(60, 160, 60);
+      if (label.equals("Back")) 
+      {
+        fill(210, 60, 60);
+      } else if (label.contains("Cancelled") || label.contains("Show All")) 
+      {
+        fill(60, 110, 210);
+      }
+    }
+    
     rect(x, y, w, h, 5);
     fill(255);
     textSize(14);
     textAlign(CENTER, CENTER);
     text(label, x + w / 2, y + h / 2);
-}
+  }
+  
+  boolean isHovered() 
+  {
+    return mouseX > x && mouseX < x + w && mouseY > y && mouseY < y + h;
+  }
 
   boolean isClicked(int mx, int my) 
   {
