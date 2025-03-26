@@ -1,6 +1,4 @@
-// -------------------------------------
-// Global variables and assets
-// -------------------------------------
+
 Table table;
 BarChartWidget barChart;
 PImage plane;
@@ -15,12 +13,10 @@ boolean showCancelled = true;
 int SCREENX = 980;
 int SCREENY = 980;
 
-// New global font variable
+
 PFont sitkaFont;
 
-// -------------------------------------
-// Setup and draw
-// -------------------------------------
+
 void settings() 
 {
   size(SCREENX, SCREENY);
@@ -30,13 +26,13 @@ void settings()
 
 void setup() 
 {
-  // Load the custom font (ensure SitkaText-18.vlw is in the data folder)
+  
   sitkaFont = loadFont("SitkaText-18.vlw");
   
   table = loadTable("flights.csv", "header");
   barChart = new BarChartWidget(100, 100, SCREENX - 200, SCREENY - 300, table);
   
-  // Initialize screens
+ 
   homeScreen = new HomeScreen();
   flightScreen = new FlightScreen();
   chartScreen = new ChartScreen();
@@ -64,9 +60,7 @@ void mouseWheel(MouseEvent event)
   currentScreen.mouseWheel(event);
 }
 
-// -------------------------------------
-// Screen base class
-// -------------------------------------
+
 abstract class Screen 
 {
   void display() {}
@@ -75,9 +69,7 @@ abstract class Screen
   void mouseWheel(MouseEvent event) {}
 }
 
-// -------------------------------------
-// Home Screen
-// -------------------------------------
+
 class HomeScreen extends Screen
 {
   ButtonWidget startButton;
@@ -119,9 +111,7 @@ class HomeScreen extends Screen
   }
 }
 
-// -------------------------------------
-// Flight Screen (with custom font and color-coded text)
-// -------------------------------------
+
 class FlightScreen extends Screen 
 {
   DropdownWidget dropdown;
@@ -131,15 +121,15 @@ class FlightScreen extends Screen
   float scrollOffset = 0;
   float targetScrollOffset = 0;
   float scrollVelocity = 0;
-  float scrollFriction = 0.9;       // how quickly scrolling stops
-  float scrollSensitivity = 15;     // responsiveness
+  float scrollFriction = 0.9;       
+  float scrollSensitivity = 15;     
   
   FlightScreen() 
   {
     dropdown = new DropdownWidget(140, 10, 150, 25);
     dropdown.addOption("ALL");
     
-    // Add unique carriers from the table
+   
     for (TableRow row : table.rows()) 
     {
       String carrier = row.getString("MKT_CARRIER");
@@ -155,7 +145,7 @@ class FlightScreen extends Screen
   
   void display() 
   {
-    // Use the custom font on this screen
+  
     textFont(sitkaFont);
     
     background(240);
@@ -165,7 +155,7 @@ class FlightScreen extends Screen
     textAlign(LEFT);
     text("Select Airline:", 50, 30);
     
-    // Apply scrolling physics
+   
     targetScrollOffset += scrollVelocity;
     scrollVelocity *= scrollFriction;
     if (abs(scrollVelocity) < 0.1) 
@@ -173,7 +163,7 @@ class FlightScreen extends Screen
       scrollVelocity = 0;
     }
     
-    // Calculate max scroll limit based on filtered rows
+   
     int dataRowCount = 0;
     for (int i = 0; i < table.getRowCount(); i++)
     {
@@ -190,7 +180,7 @@ class FlightScreen extends Screen
     int maxScroll = dataRowCount * 25 - (SCREENY - 130);
     if (maxScroll < 0) maxScroll = 0;
     
-    // Bounce effect at boundaries
+  
     if (targetScrollOffset < 0) 
     {
       targetScrollOffset *= 0.5;
@@ -203,7 +193,7 @@ class FlightScreen extends Screen
       scrollVelocity *= 0.5;
     }
     
-    // Smoothly approach target scroll offset
+    
     float scrollDifference = targetScrollOffset - scrollOffset;
     scrollOffset += scrollDifference * 0.3;
     if (abs(scrollDifference) < 0.1 && abs(scrollVelocity) < 0.1) 
@@ -211,10 +201,10 @@ class FlightScreen extends Screen
       scrollOffset = targetScrollOffset;
     }
     
-    // Display flights list with color-coded text
+   
     displayFlights();
     
-    // Display dropdown and buttons
+    
     dropdown.display();
     chartButton.display();
     cancelFilterButton.display();
@@ -226,7 +216,7 @@ class FlightScreen extends Screen
          cancelFilterButton.x - 10, cancelFilterButton.y + 20);
   }
   
-  // Renders the filtered flights and scrollbar with color coding
+
   void displayFlights() 
   {
     text("Filtered Flights:", 50, 80);
@@ -244,7 +234,7 @@ class FlightScreen extends Screen
       String carrier = row.getString("MKT_CARRIER");
       int cancelled = row.getInt("CANCELLED");
       
-      // Apply filters using dropdown selection and global showCancelled flag
+      
       if (!dropdown.selected.equals("ALL") && !carrier.equals(dropdown.selected)) continue;
       if (!showCancelled && cancelled == 1) continue;
       
@@ -254,14 +244,14 @@ class FlightScreen extends Screen
       {
         if (yOffset > 90 && yOffset < maxY) 
         {
-          // Gather flight data
+          
           String date    = row.getString("FL_DATE");
           int flightNum  = row.getInt("MKT_CARRIER_FL_NUM");
           String origin  = row.getString("ORIGIN");
           String dest    = row.getString("DEST");
           float distance = row.getFloat("DISTANCE");
           
-          // Build parts of the flight info
+         
           String datePart    = date + " | ";
           String carrierPart = carrier + flightNum + " | ";
           String routePart   = origin + " → " + dest + " | ";
@@ -269,27 +259,27 @@ class FlightScreen extends Screen
           
           float xPos = 50;
           
-          // Date in teal
+        
           fill(0, 128, 128);
           text(datePart, xPos, yOffset);
           xPos += textWidth(datePart);
           
-          // Carrier/flight number in purple
+         
           fill(128, 0, 128);
           text(carrierPart, xPos, yOffset);
           xPos += textWidth(carrierPart);
           
-          // Route in dark blue
+        
           fill(0, 0, 150);
           text(routePart, xPos, yOffset);
           xPos += textWidth(routePart);
           
-          // Distance in dark green
+          
           fill(0, 100, 0);
           text(distPart, xPos, yOffset);
           xPos += textWidth(distPart);
           
-          // If cancelled, append a red note
+         
           if (cancelled == 1) 
           {
             fill(255, 0, 0);
@@ -341,7 +331,7 @@ class FlightScreen extends Screen
       targetScrollOffset = 0;
       scrollVelocity = 0;
     }
-    // Check if clicking on the scrollbar area
+    
     if (mouseX > SCREENX - 25 && mouseX < SCREENX - 10 && mouseY > 110 && mouseY < SCREENY - 20) 
     {
       handleScrollbarDrag();
@@ -367,7 +357,7 @@ class FlightScreen extends Screen
     }
   }
   
-  // Adjusts the scroll offset based on dragging on the scrollbar
+  
   void handleScrollbarDrag() 
   {
     int totalFilteredRows = 0;
@@ -390,9 +380,7 @@ class FlightScreen extends Screen
   }
 }
 
-// -------------------------------------
-// Chart Screen: displays the bar chart and a back button.
-// -------------------------------------
+
 class ChartScreen extends Screen 
 {
   ButtonWidget backButton;
@@ -418,9 +406,7 @@ class ChartScreen extends Screen
   }
 }
 
-// -------------------------------------
-// Widget classes: ButtonWidget, DropdownWidget, BarChartWidget
-// -------------------------------------
+
 class ButtonWidget 
 {
   int x, y, w, h;
@@ -437,7 +423,7 @@ class ButtonWidget
   
   void display() 
   {
-    // Simple color assignment based on label type
+    
     if (label.equals("Back")) 
     {
       fill(200, 50, 50);
@@ -544,7 +530,7 @@ class DropdownWidget
         {
           selected = options.get(i);
           expanded = false;
-          // Reset scrolling when a new airline is selected.
+          
           flightScreen.scrollOffset = 0;
           flightScreen.targetScrollOffset = 0;
           flightScreen.scrollVelocity = 0;
