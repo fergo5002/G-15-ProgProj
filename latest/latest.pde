@@ -236,6 +236,7 @@ class FlightScreen extends Screen
       TableRow row = table.getRow(i);
       String carrier = row.getString("MKT_CARRIER");
       int cancelled = row.getInt("CANCELLED");
+      int diverted = row.getInt("DIVERTED");
       String date = row.getString("FL_DATE");
       
       if (!dropdown.selected.equals("ALL") && !carrier.equals(dropdown.selected)) continue;
@@ -276,7 +277,17 @@ class FlightScreen extends Screen
             fill(255, 0, 0);
             String cancelledNote = " [CANCELLED]";
             text(cancelledNote, xPos, yOffset);
+            xPos += textWidth(cancelledNote);
           }
+          
+          if (diverted == 1) 
+          {
+            fill(255, 165, 0); 
+            String divertedNote = " [DIVERTED]";
+            text(divertedNote, xPos, yOffset);
+          }
+          
+         
           
           processedRows++;
         }
@@ -538,6 +549,7 @@ class BarChartWidget
   int x, y, w, h;
   HashMap<String, Integer> flightCounts;
   HashMap<String, Integer> cancelledCounts;
+  HashMap<String, Integer> divertedCounts;
   int maxFlights;
   
   BarChartWidget(int x, int y, int w, int h, Table table) 
@@ -548,16 +560,24 @@ class BarChartWidget
     this.h = h;
     this.flightCounts = new HashMap<>();
     this.cancelledCounts = new HashMap<>();
+    this.divertedCounts = new HashMap<>();
     
     for (TableRow row : table.rows()) 
     {
       String carrier = row.getString("MKT_CARRIER");
       int cancelled = row.getInt("CANCELLED");
-      
+      int diverted = row.getInt("DIVERTED");  
+
       flightCounts.put(carrier, flightCounts.getOrDefault(carrier, 0) + 1);
+  
       if (cancelled == 1) 
       {
-        cancelledCounts.put(carrier, cancelledCounts.getOrDefault(carrier, 0) + 1);
+         cancelledCounts.put(carrier, cancelledCounts.getOrDefault(carrier, 0) + 1);
+      }
+
+      if (diverted == 1) 
+      {
+        divertedCounts.put(carrier, divertedCounts.getOrDefault(carrier, 0) + 1);
       }
     }
     
@@ -608,6 +628,17 @@ class BarChartWidget
         fill(255, 0, 0);
         text("(" + cancelled + " canc.)", startX + index * barWidth + barWidth / 2, y + h - barHeight - 20);
       }
+      int diverted = divertedCounts.getOrDefault(carrier, 0);
+      int divertedHeight = int(map(diverted, 0, maxFlights, 0, h - 100));
+
+      fill(100, 255, 100); 
+      rect(startX + index * barWidth, y + h - barHeight, barWidth - 5, divertedHeight);
+
+      if (diverted > 0) 
+      {
+        fill(0, 128, 0);
+        text("(" + diverted + " div.)", startX + index * barWidth + barWidth / 2, y + h - barHeight - 35);
+      }
       
       index++;
     }
@@ -626,5 +657,10 @@ class BarChartWidget
     rect(SCREENX - 150, 135, 15, 15);
     fill(0);
     text("Cancelled", SCREENX - 130, 148);
+    
+    fill(100, 255, 100);
+    rect(SCREENX - 150, 160, 15, 15);
+    fill(0);
+    text("Diverted", SCREENX - 130, 173);
   }
 }
