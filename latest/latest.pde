@@ -115,7 +115,7 @@ class HomeScreen extends Screen
 class FlightScreen extends Screen 
 {
   DropdownWidget dropdown;
-  DropdownWidget dateDropdown; // New date filter dropdown
+  DropdownWidget dateDropdown; 
   ButtonWidget chartButton;
   ButtonWidget cancelFilterButton;
   
@@ -127,7 +127,6 @@ class FlightScreen extends Screen
   
   FlightScreen() 
   {
-    // Existing airline dropdown:
     dropdown = new DropdownWidget(140, 10, 150, 25);
     dropdown.addOption("ALL");
     for (TableRow row : table.rows()) 
@@ -139,7 +138,6 @@ class FlightScreen extends Screen
       }
     }
     
-    // New date dropdown:
     dateDropdown = new DropdownWidget(140, 50, 150, 25);
     dateDropdown.addOption("ALL");
     for (TableRow row : table.rows()) 
@@ -164,9 +162,8 @@ class FlightScreen extends Screen
     textSize(14);
     textAlign(LEFT);
     text("Select Airline:", 50, 30);
-    text("Select Date:", 50, 70);  // Label for date dropdown
+    text("Select Date:", 50, 70); 
     
-    // Update scrolling values (same as before)
     targetScrollOffset += scrollVelocity;
     scrollVelocity *= scrollFriction;
     if (abs(scrollVelocity) < 0.1) 
@@ -180,7 +177,6 @@ class FlightScreen extends Screen
       TableRow row = table.getRow(i);
       String carrier = row.getString("MKT_CARRIER");
       int cancelled = row.getInt("CANCELLED");
-      // Now filter by both airline and date:
       if ((dropdown.selected.equals("ALL") || carrier.equals(dropdown.selected)) &&
           (showCancelled || cancelled == 0)) 
       {
@@ -212,7 +208,6 @@ class FlightScreen extends Screen
     
     displayFlights();
     
-    // Draw the dropdowns and buttons
     dropdown.display();
     dateDropdown.display();
     chartButton.display();
@@ -243,9 +238,7 @@ class FlightScreen extends Screen
       int cancelled = row.getInt("CANCELLED");
       String date = row.getString("FL_DATE");
       
-      // Filter by airline selection
       if (!dropdown.selected.equals("ALL") && !carrier.equals(dropdown.selected)) continue;
-      // New filter by date selection:
       if (!dateDropdown.selected.equals("ALL") && !date.equals(dateDropdown.selected)) continue;
       if (!showCancelled && cancelled == 1) continue;
       
@@ -302,7 +295,7 @@ class FlightScreen extends Screen
   void mousePressed() 
   {
     dropdown.checkClick(mouseX, mouseY);
-    dateDropdown.checkClick(mouseX, mouseY);  // Handle clicks on the date widget
+    dateDropdown.checkClick(mouseX, mouseY);  
     if (chartButton.isClicked(mouseX, mouseY)) 
     {
       currentScreen = chartScreen;
@@ -365,7 +358,6 @@ class FlightScreen extends Screen
   void drawScrollIndicator(int totalRows, int rowHeight) 
     {
   int totalHeight = totalRows * rowHeight;
-  // Only draw the scrollbar if the content exceeds the available space
   if (totalHeight <= SCREENY - 130) return;
   
   int scrollbarHeight = (SCREENY - 130) * (SCREENY - 130) / totalHeight;
