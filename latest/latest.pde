@@ -122,7 +122,7 @@ class FlightScreen extends Screen
   float scrollOffset = 0;
   float targetScrollOffset = 0;
   float scrollVelocity = 0;
-  float scrollFriction = 0.9;       
+  float scrollFriction = 0.5;       
   float scrollSensitivity = 15;     
   
   FlightScreen() 
