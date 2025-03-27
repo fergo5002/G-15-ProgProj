@@ -595,8 +595,8 @@ class BarChartWidget
   {
     fill(240);
     rect(0, 0, SCREENX, SCREENY);
-    fill(0);
-    textSize(20);
+    fill(0, 0, 255);
+    textSize(40);
     textAlign(CENTER);
     text("Flights by Airline", SCREENX / 2, 60);
     
