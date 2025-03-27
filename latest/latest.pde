@@ -1,4 +1,3 @@
-
 Table table;
 BarChartWidget barChart;
 PImage plane;
@@ -10,7 +9,7 @@ ChartScreen chartScreen;
 
 boolean showCancelled = true;
 
-int SCREENX = 980;
+int SCREENX = 1200;
 int SCREENY = 780;
 
 
@@ -127,30 +126,30 @@ class FlightScreen extends Screen
   
   FlightScreen() 
   {
-    dropdown = new DropdownWidget(140, 10, 150, 25);
+    dropdown = new DropdownWidget(150, 10, 150, 25); // Moved to the right
     dropdown.addOption("ALL");
     for (TableRow row : table.rows()) 
     {
-      String carrier = row.getString("MKT_CARRIER");
-      if (!dropdown.options.contains(carrier)) 
-      {
-        dropdown.addOption(carrier);
-      }
+        String carrier = row.getString("MKT_CARRIER");
+        if (!dropdown.options.contains(carrier)) 
+        {
+            dropdown.addOption(carrier);
+        }
     }
     
-    dateDropdown = new DropdownWidget(140, 50, 150, 25);
+    dateDropdown = new DropdownWidget(150, 50, 150, 25); // Moved to the right
     dateDropdown.addOption("ALL");
     for (TableRow row : table.rows()) 
     {
-      String date = row.getString("FL_DATE");
-      if (!dateDropdown.options.contains(date)) 
-      {
-        dateDropdown.addOption(date);
-      }
+        String date = row.getString("FL_DATE").split(" ")[0];
+        if (!dateDropdown.options.contains(date)) 
+        {
+            dateDropdown.addOption(date);
+        }
     }
     
-    chartButton = new ButtonWidget(700, 10, 200, 30, "View Chart");
-    cancelFilterButton = new ButtonWidget(450, 10, 200, 30, "Hide Cancelled");
+    chartButton = new ButtonWidget(970, 10, 200, 30, "View Chart"); // Moved to the right
+    cancelFilterButton = new ButtonWidget(750, 10, 200, 30, "Hide Cancelled"); // Moved to the right
   }
   
   void display() 
@@ -161,8 +160,8 @@ class FlightScreen extends Screen
     fill(0);
     textSize(20);
     textAlign(LEFT);
-    text("Select Airline:", 50, 30);
-    text("Select Date:", 50, 70); 
+    text("Select Airline:", 10, 30); // Moved to the right
+    text("Select Date:", 10, 70);   // Moved to the right
     
     targetScrollOffset += scrollVelocity;
     scrollVelocity *= scrollFriction;
@@ -208,8 +207,12 @@ class FlightScreen extends Screen
     
     displayFlights();
     
-    dropdown.display();
+    // Render the date dropdown first
     dateDropdown.display();
+    
+    // Render the airline dropdown last to ensure it appears above the date dropdown
+    dropdown.display();
+    
     chartButton.display();
     cancelFilterButton.display();
     
@@ -230,78 +233,74 @@ class FlightScreen extends Screen
     int visibleRows = SCREENY / rowHeight + 2;
     int processedRows = 0;
     int totalFilteredRows = 0;
-    
+
     for (int i = 0; i < table.getRowCount(); i++) 
     {
-      TableRow row = table.getRow(i);
-      String carrier = row.getString("MKT_CARRIER");
-      int cancelled = row.getInt("CANCELLED");
-      int diverted = row.getInt("DIVERTED");
-      String date = row.getString("FL_DATE");
-      
-      if (!dropdown.selected.equals("ALL") && !carrier.equals(dropdown.selected)) continue;
-      if (!dateDropdown.selected.equals("ALL") && !date.equals(dateDropdown.selected)) continue;
-      if (!showCancelled && cancelled == 1) continue;
-      
-      totalFilteredRows++;
-      
-      if (totalFilteredRows >= startIndex && processedRows < visibleRows) 
-      {
-        if (yOffset > 110 && yOffset < maxY) 
+        TableRow row = table.getRow(i);
+        String carrier = row.getString("MKT_CARRIER");
+        int cancelled = row.getInt("CANCELLED");
+        int diverted = row.getInt("DIVERTED");
+        String date = row.getString("FL_DATE").split(" ")[0]; // Extract only the date part
+
+        if (!dropdown.selected.equals("ALL") && !carrier.equals(dropdown.selected)) continue;
+        if (!dateDropdown.selected.equals("ALL") && !date.equals(dateDropdown.selected)) continue;
+        if (!showCancelled && cancelled == 1) continue;
+
+        totalFilteredRows++;
+
+        if (totalFilteredRows >= startIndex && processedRows < visibleRows) 
         {
-          String datePart    = date + " | ";
-          String carrierPart = carrier + row.getInt("MKT_CARRIER_FL_NUM") + " | ";
-          String routePart   = row.getString("ORIGIN") + " → " + row.getString("DEST") + " | ";
-          String distPart    = row.getFloat("DISTANCE") + " miles";
-          
-          float xPos = 50;
-          
-          fill(0, 128, 128);
-          text(datePart, xPos, yOffset);
-          xPos += textWidth(datePart);
-          
-          fill(128, 0, 128);
-          text(carrierPart, xPos, yOffset);
-          xPos += textWidth(carrierPart);
-          
-          fill(0, 0, 150);
-          text(routePart, xPos, yOffset);
-          xPos += textWidth(routePart);
-          
-          fill(0, 100, 0);
-          text(distPart, xPos, yOffset);
-          xPos += textWidth(distPart);
-          
-          if (cancelled == 1) 
-          {
-            fill(255, 0, 0);
-            String cancelledNote = " [CANCELLED]";
-            text(cancelledNote, xPos, yOffset);
-            xPos += textWidth(cancelledNote);
-          }
-          
-          if (diverted == 1) 
-          {
-            fill(255, 165, 0); 
-            String divertedNote = " [DIVERTED]";
-            text(divertedNote, xPos, yOffset);
-          }
-          
-         
-          
-          processedRows++;
+            if (yOffset > 110 && yOffset < maxY) 
+            {
+                String datePart = date + " | "; // Use the modified date without time
+                String carrierPart = carrier + row.getInt("MKT_CARRIER_FL_NUM") + " | ";
+                String routePart   = row.getString("ORIGIN") + " → " + row.getString("DEST") + " | ";
+                String distPart    = row.getFloat("DISTANCE") + " miles";
+
+                float xPos = 50;
+
+                fill(0, 128, 128);
+                text(datePart, xPos, yOffset);
+                xPos += textWidth(datePart);
+
+                fill(128, 0, 128);
+                text(carrierPart, xPos, yOffset);
+                xPos += textWidth(carrierPart);
+
+                fill(0, 0, 150);
+                text(routePart, xPos, yOffset);
+                xPos += textWidth(routePart);
+
+                fill(0, 100, 0);
+                text(distPart, xPos, yOffset);
+                xPos += textWidth(distPart); // Adjust xPos after displaying distance
+
+                if (cancelled == 1) 
+                {
+                    fill(255, 0, 0);
+                    String cancelledNote = " [CANCELLED]";
+                    text(cancelledNote, xPos, yOffset);
+                    xPos += textWidth(cancelledNote);
+                }
+
+                if (diverted == 1) 
+                {
+                    fill(255, 165, 0); 
+                    String divertedNote = " [DIVERTED]";
+                    text(divertedNote, xPos, yOffset); // Adjust xPos after displaying "DIVERTED"
+                }
+
+                processedRows++;
+            }
         }
-      }
-      yOffset += rowHeight;
+        yOffset += rowHeight;
     }
     drawScrollIndicator(totalFilteredRows, rowHeight);
-    
+
     fill(100);
     textSize(12);
     text("Use mouse wheel to scroll", SCREENX - 200, SCREENY - 20);
 }
-
-  
   
   void mousePressed() 
   {
@@ -337,12 +336,20 @@ class FlightScreen extends Screen
   
   void mouseWheel(MouseEvent event) 
   {
-    if (!dropdown.expanded && !dateDropdown.expanded) 
-    {
-      float e = event.getCount();
-      scrollVelocity += e * scrollSensitivity;
-      scrollVelocity = constrain(scrollVelocity, -100, 100);
-    }
+  if (dropdown.expanded) 
+  {
+    dropdown.mouseWheel(event);
+  } 
+  else if (dateDropdown.expanded) 
+  {
+    dateDropdown.mouseWheel(event);
+  } 
+  else 
+  {
+    float e = event.getCount();
+    scrollVelocity += e * scrollSensitivity;
+    scrollVelocity = constrain(scrollVelocity, -100, 100);
+  }
   }
   
   void handleScrollbarDrag() 
@@ -481,7 +488,9 @@ class DropdownWidget
   ArrayList<String> options;
   boolean expanded = false;
   String selected;
-  
+  float scrollOffset = 0; // Scroll offset for the dropdown
+  float scrollSensitivity = 10; // Sensitivity for scrolling
+
   DropdownWidget(int x, int y, int w, int h) 
   {
     this.x = x;
@@ -491,35 +500,55 @@ class DropdownWidget
     this.options = new ArrayList<String>();
     this.selected = "";
   }
-  
+
   void addOption(String option) 
   {
     options.add(option);
     if (selected.equals("")) selected = option;
   }
-  
+
   void display() 
   {
     fill(220);
     rect(x, y, w, h, 5);
     fill(0);
     text(selected, x + 10, y + h - 5);
-    
+
     if (expanded) 
     {
+      int maxDropdownHeight = SCREENY - y - h - 20; // Limit dropdown height to fit on screen
+      int visibleOptions = max(1, maxDropdownHeight / h); // Number of visible options
+      int totalHeight = options.size() * h;
+
       fill(255, 255, 255, 230);
-      int maxDropdownHeight = min(options.size() * h, SCREENY - y - h);
-      rect(x, y + h, w, maxDropdownHeight, 5);
+      rect(x, y + h, w, min(totalHeight, maxDropdownHeight), 5);
+
+      // Display visible options
       for (int i = 0; i < options.size(); i++) 
       {
-        fill(240);
-        rect(x, y + (i + 1) * h, w, h, 5);
-        fill(0);
-        text(options.get(i), x + 10, y + (i + 2) * h - 5);
+        float optionY = y + h + i * h - scrollOffset;
+        if (optionY >= y + h && optionY < y + h + maxDropdownHeight) 
+        {
+          fill(240);
+          rect(x, optionY, w, h, 5);
+          fill(0);
+          text(options.get(i), x + 10, optionY + h - 5);
+        }
+      }
+
+      // Draw scroll indicator if needed
+      if (totalHeight > maxDropdownHeight) 
+      {
+        float scrollbarHeight = max(30, (float)maxDropdownHeight / totalHeight * maxDropdownHeight);
+        float scrollbarY = y + h + scrollOffset / totalHeight * maxDropdownHeight;
+        fill(200, 200, 200, 150);
+        rect(x + w - 10, y + h, 10, maxDropdownHeight);
+        fill(100, 100, 100, 200);
+        rect(x + w - 10, scrollbarY, 10, scrollbarHeight, 5);
       }
     }
   }
-  
+
   void checkClick(int mx, int my) 
   {
     if (mx > x && mx < x + w && my > y && my < y + h) 
@@ -530,16 +559,27 @@ class DropdownWidget
     {
       for (int i = 0; i < options.size(); i++) 
       {
-        if (mx > x && mx < x + w && my > y + (i + 1) * h && my < y + (i + 2) * h) 
+        float optionY = y + h + i * h - scrollOffset;
+        if (mx > x && mx < x + w && my > optionY && my < optionY + h) 
         {
           selected = options.get(i);
           expanded = false;
-          
+
           flightScreen.scrollOffset = 0;
           flightScreen.targetScrollOffset = 0;
           flightScreen.scrollVelocity = 0;
         }
       }
+    }
+  }
+
+  void mouseWheel(MouseEvent event) 
+  {
+    if (expanded) 
+    {
+      float e = event.getCount();
+      scrollOffset += e * scrollSensitivity;
+      scrollOffset = constrain(scrollOffset, 0, max(0, options.size() * h - (SCREENY - y - h - 20)));
     }
   }
 }
