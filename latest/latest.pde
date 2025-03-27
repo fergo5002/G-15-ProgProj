@@ -11,7 +11,7 @@ ChartScreen chartScreen;
 boolean showCancelled = true;
 
 int SCREENX = 980;
-int SCREENY = 980;
+int SCREENY = 780;
 
 
 PFont sitkaFont;
