@@ -159,7 +159,7 @@ class FlightScreen extends Screen
     background(240);
     
     fill(0);
-    textSize(14);
+    textSize(20);
     textAlign(LEFT);
     text("Select Airline:", 50, 30);
     text("Select Date:", 50, 70); 
@@ -214,7 +214,7 @@ class FlightScreen extends Screen
     cancelFilterButton.display();
     
     fill(100);
-    textSize(12);
+    textSize(18);
     textAlign(RIGHT);
     text("Showing " + (showCancelled ? "all flights" : "only non-cancelled flights"), 
          cancelFilterButton.x - 10, cancelFilterButton.y + 20);
