@@ -161,8 +161,8 @@ class FlightScreen extends Screen
     fill(0);
     textSize(20);
     textAlign(LEFT);
-    text("Select Airline:", 50, 30);
-    text("Select Date:", 50, 70); 
+    text("Select Airline:", 20, 30);
+    text("Select Date:", 35, 70); 
     
     targetScrollOffset += scrollVelocity;
     scrollVelocity *= scrollFriction;
