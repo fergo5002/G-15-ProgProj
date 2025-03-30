@@ -26,7 +26,7 @@ void settings()
 void setup() 
 {
   
-  sitkaFont = loadFont("SitkaText-18.vlw");
+  sitkaFont = loadFont("Consolas.vlw");
   
   table = loadTable("flights.csv", "header");
   barChart = new BarChartWidget(100, 100, SCREENX - 200, SCREENY - 300, table);
