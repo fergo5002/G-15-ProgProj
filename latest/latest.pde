@@ -906,6 +906,12 @@ class mapScreen extends Screen {
       flightScreen.selectedState = clickedState;
       currentScreen = flightScreen;
     }
+
+      if ( mouseX > 50 && mouseX < 150 && mouseY > 10 && mouseY < 30)
+    {
+      currentScreen = flightScreen;
+      
+    }
   }
 
   String getClickedState(int mx, int my) 
