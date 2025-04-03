@@ -244,7 +244,7 @@ class FlightScreen extends Screen
         String carrier = row.getString("MKT_CARRIER");
         int cancelled = row.getInt("CANCELLED");
         int diverted = row.getInt("DIVERTED");
-        String date = row.getString("FL_DATE").split(" ")[0]; 
+        String date =  row.getString("FL_DATE").split(" ")[0]; 
         String originState = row.getString("ORIGIN_STATE_ABR");
 
         if (!dropdown.selected.equals("ALL") && !carrier.equals(dropdown.selected)) continue;
@@ -258,7 +258,7 @@ class FlightScreen extends Screen
         {
             if (yOffset > 110 && yOffset < maxY) 
             {
-                String datePart = date + " | "; // Use the modified date without time
+                String datePart = date + " | "; 
                 String carrierPart = carrier + row.getInt("MKT_CARRIER_FL_NUM") + " | ";
                 String routePart   = row.getString("ORIGIN") + " → " + row.getString("DEST") + " | ";
                 String distPart    = row.getFloat("DISTANCE") + " miles";
