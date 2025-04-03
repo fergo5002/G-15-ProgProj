@@ -380,7 +380,7 @@ int getTotalContentHeight() {
     int diverted = row.getInt("DIVERTED");
 
     fill(0);
-    textSize(12);
+    textSize(18);
     textAlign(LEFT, CENTER);
     
     float dateCol = 60;         // Date
@@ -423,7 +423,7 @@ int getTotalContentHeight() {
 
   void drawFooter() {
     fill(100);
-    textSize(12);
+    textSize(20);
     textAlign(RIGHT);
     text("Use mouse wheel to scroll", SCREENX - 60, SCREENY - 20);
     
