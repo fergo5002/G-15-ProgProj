@@ -28,7 +28,7 @@ void settings()
 void setup() 
 {
   
-  sitkaFont = loadFont("theFont.vlw");
+  sitkaFont = loadFont("Consolas.vlw");
   
   table = loadTable("flights.csv", "header");
   barChart = new BarChartWidget(100, 100, SCREENX - 200, SCREENY - 300, table);
@@ -229,11 +229,7 @@ class FlightScreen extends Screen
   
   
   void displayFlights() {
-    // Header
-    fill(50, 50, 100);
-    textSize(18);
-    textAlign(LEFT);
-    text("Filtered Flights (" + getFilteredCount() + ")", 50, 110);
+   
     
     // Column headers
     drawColumnHeaders();
@@ -252,61 +248,13 @@ class FlightScreen extends Screen
 
     for (int i = 0; i < table.getRowCount(); i++) {
         TableRow row = table.getRow(i);
-        String carrier = row.getString("MKT_CARRIER");
-        int cancelled = row.getInt("CANCELLED");
-        int diverted = row.getInt("DIVERTED");
-        String date = row.getString("FL_DATE").split(" ")[0]; 
-        String originState = row.getString("ORIGIN_STATE_ABR");
-
-        if (!dropdown.selected.equals("ALL") && !carrier.equals(dropdown.selected)) continue;
-        if (!dateDropdown.selected.equals("ALL") && !date.equals(dateDropdown.selected)) continue;
-        if (!showCancelled && cancelled == 1) continue;
-        if (!selectedState.equals("") && !originState.equals(selectedState)) continue;
+        if (!passesFilters(row)) continue;
 
         totalFilteredRows++;
 
-        if (totalFilteredRows >= startIndex && processedRows < visibleRows) 
-        {
-            if (yOffset > 110 && yOffset < maxY) 
-            {
-                String datePart = date + " | "; // Use the modified date without time
-                String carrierPart = carrier + row.getInt("MKT_CARRIER_FL_NUM") + " | ";
-                String routePart   = row.getString("ORIGIN") + " → " + row.getString("DEST") + " | ";
-                String distPart    = row.getFloat("DISTANCE") + " miles";
-
-                float xPos = 50;
-
-                fill(0, 128, 128);
-                text(datePart, xPos, yOffset);
-                xPos += textWidth(datePart);
-
-                fill(128, 0, 128);
-                text(carrierPart, xPos, yOffset);
-                xPos += textWidth(carrierPart);
-
-                fill(0, 0, 150);
-                text(routePart, xPos, yOffset);
-                xPos += textWidth(routePart);
-
-                fill(0, 100, 0);
-                text(distPart, xPos, yOffset);
-                xPos += textWidth(distPart); 
-
-                if (cancelled == 1) 
-                {
-                    fill(255, 0, 0);
-                    String cancelledNote = " [CANCELLED]";
-                    text(cancelledNote, xPos, yOffset);
-                    xPos += textWidth(cancelledNote);
-                }
-
-                if (diverted == 1) 
-                {
-                    fill(255, 165, 0); 
-                    String divertedNote = " [DIVERTED]";
-                    text(divertedNote, xPos, yOffset); 
-                }
-
+        if (totalFilteredRows >= startIndex && processedRows < visibleRows) {
+            if (yOffset > 160 && yOffset < maxY) {
+                drawFlightRow(row, yOffset, rowHeight);
                 processedRows++;
             }
         }
@@ -336,6 +284,32 @@ class FlightScreen extends Screen
     }
     return count;
   }
+  void drawHeaderArea() {
+    // Fixed header that won't scroll
+    fill(240);
+    rect(0, 0, SCREENX, 160);
+    
+    // Title and filter info
+    fill(50, 50, 100);
+    textSize(18);
+    textAlign(LEFT);
+    text("Filtered Flights (" + getFilteredCount() + ")", 50, 110);
+    
+    // Draw your dropdowns and buttons here
+    dateDropdown.display();
+    dropdown.display();
+    clearStateButton.display();
+    chartButton.display();
+    cancelFilterButton.display();
+    mapButton.display();
+    
+    // Filter status text
+    fill(100);
+    textSize(14);
+    textAlign(RIGHT);
+    text("Showing " + (showCancelled ? "all flights" : "only non-cancelled flights"), 
+         cancelFilterButton.x - 10, cancelFilterButton.y + 20);
+}
 
   void drawColumnHeaders() {
     fill(70, 70, 120);
@@ -351,6 +325,33 @@ class FlightScreen extends Screen
     text("Distance", x, 145); x += 100;
     text("Status", x, 145);
   }
+
+
+void drawScrollIndicator() {
+    // Adjust scroll indicator calculations to account for clipped area
+    int visibleHeight = SCREENY - 180;
+    int totalHeight = getTotalContentHeight();
+    
+    if (totalHeight <= visibleHeight) return;
+    
+    float scrollRatio = visibleHeight / (float)totalHeight;
+    int scrollbarHeight = max(30, (int)(visibleHeight * scrollRatio));
+    int scrollbarY = 160 + (int)(scrollOffset * (visibleHeight - scrollbarHeight) / (totalHeight - visibleHeight));
+    
+    fill(200, 200, 200, 150);
+    rect(SCREENX - 20, 160, 10, visibleHeight);
+    
+    fill(100, 100, 100, 200);
+    rect(SCREENX - 20, scrollbarY, 10, scrollbarHeight, 5);
+}
+
+int getTotalContentHeight() {
+    int rowCount = 0;
+    for (int i = 0; i < table.getRowCount(); i++) {
+        if (passesFilters(table.getRow(i))) rowCount++;
+    }
+    return 30 + (rowCount * 30); // Header + rows
+}
 
   void drawTableBackground(int startY, int rows, int rowHeight) {
     noStroke();
