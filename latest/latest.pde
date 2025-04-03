@@ -165,7 +165,7 @@ class FlightScreen extends Screen
     background(240);
     
     fill(0);
-    textSize(20);
+    textSize(15);
     textAlign(LEFT);
     text("Select Airline:", 10, 30); 
     text("Select Date:", 10, 70);   
@@ -244,23 +244,22 @@ class FlightScreen extends Screen
     int totalFilteredRows = 0;
 
     // Table-like background
-    drawTableBackground(yOffset, visibleRows, rowHeight);
-
-    for (int i = 0; i < table.getRowCount(); i++) {
-        TableRow row = table.getRow(i);
-        if (!passesFilters(row)) continue;
-
-        totalFilteredRows++;
-
-        if (totalFilteredRows >= startIndex && processedRows < visibleRows) {
-            if (yOffset > 160 && yOffset < maxY) {
-                drawFlightRow(row, yOffset, rowHeight);
-                processedRows++;
-            }
-        }
-        yOffset += rowHeight;
-    }
     
+        for (int i = 0; i < table.getRowCount(); i++) {
+            TableRow row = table.getRow(i);
+            if (!passesFilters(row)) continue;
+
+            totalFilteredRows++;
+
+            if (totalFilteredRows >= startIndex && processedRows < visibleRows) {
+                if (yOffset > 160 && yOffset < maxY) {
+                    // Draw single flight row without background shading
+                    drawFlightRow(row, yOffset, rowHeight);
+                    processedRows++;
+                }
+            }
+            yOffset += rowHeight;
+        }
     drawScrollIndicator(totalFilteredRows, rowHeight);
     drawFooter();
   }
@@ -318,12 +317,16 @@ class FlightScreen extends Screen
     textSize(14);
     textAlign(LEFT, CENTER);
     
-    float x = 60;
-    text("Date", x, 145); x += 120;
-    text("Flight #", x, 145); x += 100;
-    text("Route", x, 145); x += 150;
-    text("Distance", x, 145); x += 100;
-    text("Status", x, 145);
+    float dateCol = 60;         // Date
+    float flightCol = dateCol + 150; // Flight # (wider)
+    float routeCol = flightCol + 200; // Route (widest)
+    float distanceCol = routeCol + 200; // Distance
+    float statusCol = distanceCol + 150; // Status
+    text("Date", dateCol, 145);
+    text("Flight #", flightCol, 145);
+    text("Route", routeCol, 145); 
+    text("Distance", distanceCol, 145); 
+    text("Status", statusCol, 145); 
   }
 
 
@@ -380,31 +383,36 @@ int getTotalContentHeight() {
     textSize(12);
     textAlign(LEFT, CENTER);
     
-    float x = 60;
-    text(date, x, y + rowHeight/2); x += 120;
+    float dateCol = 60;         // Date
+    float flightCol = dateCol + 150; // Flight # (wider)
+    float routeCol = flightCol + 200; // Route (widest)
+    float distanceCol = routeCol + 200; // Distance
+    float statusCol = distanceCol + 150; // Status
+    
+    text(date, dateCol, y + rowHeight/2); ;
     
     // Flight number with airline color coding
     fill(128, 0, 128);
-    text(carrier + flightNum, x, y + rowHeight/2); x += 100;
+    text(carrier + flightNum, flightCol, y + rowHeight/2); 
     
     // Route with arrow
     fill(0, 0, 150);
-    text(origin + " → " + dest, x, y + rowHeight/2); x += 150;
+    text(origin + " → " + dest, routeCol, y + rowHeight/2); 
     
     // Distance with unit
     fill(0, 100, 0);
-    text(nf(distance, 0, 1) + " mi", x, y + rowHeight/2); x += 100;
+    text(nf(distance, 0, 1) + " mi", distanceCol, y + rowHeight/2); 
     
     // Status indicators
     if (cancelled == 1) {
       fill(200, 0, 0);
-      text("CANCELLED", x, y + rowHeight/2);
+      text("CANCELLED", statusCol, y + rowHeight/2);
     } else if (diverted == 1) {
       fill(255, 165, 0);
-      text("DIVERTED", x, y + rowHeight/2);
+      text("DIVERTED", statusCol, y + rowHeight/2);
     } else {
       fill(0, 150, 0);
-      text("ON TIME", x, y + rowHeight/2);
+      text("ON TIME", statusCol, y + rowHeight/2);
     }
     
     // Add subtle row separator
