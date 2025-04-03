@@ -425,7 +425,7 @@ int getTotalContentHeight() {
     fill(100);
     textSize(20);
     textAlign(RIGHT);
-    text("Use mouse wheel to scroll", SCREENX - 60, SCREENY - 20);
+    text("Use mouse wheel to scroll", SCREENX - 60, 115);
     
     // Show current filters
     textAlign(LEFT);
@@ -436,7 +436,7 @@ int getTotalContentHeight() {
     if (!showCancelled) filters += "(No cancelled flights)";
     
     if (!filters.equals("Filters: ")) {
-      text(filters, 60, SCREENY - 20);
+      text(filters, 50, 115);
     }
   }
   
