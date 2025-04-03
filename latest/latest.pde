@@ -1,27 +1,15 @@
 Table table;
-
 BarChartWidget barChart;
-
 PImage plane;
-
 PImage usaMap;
-
 Screen currentScreen;
-
 HomeScreen homeScreen;
-
 FlightScreen flightScreen;
-
 ChartScreen chartScreen;
-
 mapScreen mapScreen;
-
 boolean showCancelled = true;
-
 int SCREENX = 1200;
-
 int SCREENY = 780;
-
 PFont sitkaFont;
 
 void settings() 
