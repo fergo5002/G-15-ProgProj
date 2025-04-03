@@ -227,86 +227,161 @@ class FlightScreen extends Screen
          cancelFilterButton.x - 10, cancelFilterButton.y + 20);
   }
   
-  void displayFlights() 
-  {
-    text("Filtered Flights:", 50, 110);
-    int yOffset = 130 - (int)scrollOffset;
+  
+  void displayFlights() {
+    // Header
+    fill(50, 50, 100);
+    textSize(18);
+    textAlign(LEFT);
+    text("Filtered Flights (" + getFilteredCount() + ")", 50, 110);
+    
+    // Column headers
+    drawColumnHeaders();
+    
+    // Flight data
+    int yOffset = 160 - (int)scrollOffset;
     int maxY = SCREENY - 20;
-    int rowHeight = 25;
+    int rowHeight = 30; // Increased row height
     int startIndex = max(0, (int)(scrollOffset / rowHeight));
-    int visibleRows = SCREENY / rowHeight + 2;
+    int visibleRows = (SCREENY - 160) / rowHeight + 2;
     int processedRows = 0;
     int totalFilteredRows = 0;
 
-    for (int i = 0; i < table.getRowCount(); i++) 
-    {
-        TableRow row = table.getRow(i);
-        String carrier = row.getString("MKT_CARRIER");
-        int cancelled = row.getInt("CANCELLED");
-        int diverted = row.getInt("DIVERTED");
-        String date = row.getString("FL_DATE").split(" ")[0]; 
-        String originState = row.getString("ORIGIN_STATE_ABR");
+    // Table-like background
+    drawTableBackground(yOffset, visibleRows, rowHeight);
 
-        if (!dropdown.selected.equals("ALL") && !carrier.equals(dropdown.selected)) continue;
-        if (!dateDropdown.selected.equals("ALL") && !date.equals(dateDropdown.selected)) continue;
-        if (!showCancelled && cancelled == 1) continue;
-        if (!selectedState.equals("") && !originState.equals(selectedState)) continue;
+    for (int i = 0; i < table.getRowCount(); i++) {
+        TableRow row = table.getRow(i);
+        if (!passesFilters(row)) continue;
 
         totalFilteredRows++;
 
-        if (totalFilteredRows >= startIndex && processedRows < visibleRows) 
-        {
-            if (yOffset > 110 && yOffset < maxY) 
-            {
-                String datePart = date + " | "; // Use the modified date without time
-                String carrierPart = carrier + row.getInt("MKT_CARRIER_FL_NUM") + " | ";
-                String routePart   = row.getString("ORIGIN") + " → " + row.getString("DEST") + " | ";
-                String distPart    = row.getFloat("DISTANCE") + " miles";
-
-                float xPos = 50;
-
-                fill(0, 128, 128);
-                text(datePart, xPos, yOffset);
-                xPos += textWidth(datePart);
-
-                fill(128, 0, 128);
-                text(carrierPart, xPos, yOffset);
-                xPos += textWidth(carrierPart);
-
-                fill(0, 0, 150);
-                text(routePart, xPos, yOffset);
-                xPos += textWidth(routePart);
-
-                fill(0, 100, 0);
-                text(distPart, xPos, yOffset);
-                xPos += textWidth(distPart); 
-
-                if (cancelled == 1) 
-                {
-                    fill(255, 0, 0);
-                    String cancelledNote = " [CANCELLED]";
-                    text(cancelledNote, xPos, yOffset);
-                    xPos += textWidth(cancelledNote);
-                }
-
-                if (diverted == 1) 
-                {
-                    fill(255, 165, 0); 
-                    String divertedNote = " [DIVERTED]";
-                    text(divertedNote, xPos, yOffset); 
-                }
-
+        if (totalFilteredRows >= startIndex && processedRows < visibleRows) {
+            if (yOffset > 160 && yOffset < maxY) {
+                drawFlightRow(row, yOffset, rowHeight);
                 processedRows++;
             }
         }
         yOffset += rowHeight;
     }
+    
     drawScrollIndicator(totalFilteredRows, rowHeight);
+    drawFooter();
+  }
 
+  boolean passesFilters(TableRow row) {
+    String carrier = row.getString("MKT_CARRIER");
+    int cancelled = row.getInt("CANCELLED");
+    String date = row.getString("FL_DATE").split(" ")[0]; 
+    String originState = row.getString("ORIGIN_STATE_ABR");
+
+    return (dropdown.selected.equals("ALL") || carrier.equals(dropdown.selected)) &&
+           (dateDropdown.selected.equals("ALL") || date.equals(dateDropdown.selected)) &&
+           (showCancelled || cancelled == 0) &&
+           (selectedState.equals("") || originState.equals(selectedState));
+  }
+
+  int getFilteredCount() {
+    int count = 0;
+    for (int i = 0; i < table.getRowCount(); i++) {
+      if (passesFilters(table.getRow(i))) count++;
+    }
+    return count;
+  }
+
+  void drawColumnHeaders() {
+    fill(70, 70, 120);
+    rect(50, 130, SCREENX-100, 30, 5);
+    fill(255);
+    textSize(14);
+    textAlign(LEFT, CENTER);
+    
+    float x = 60;
+    text("Date", x, 145); x += 120;
+    text("Flight #", x, 145); x += 100;
+    text("Route", x, 145); x += 150;
+    text("Distance", x, 145); x += 100;
+    text("Status", x, 145);
+  }
+
+  void drawTableBackground(int startY, int rows, int rowHeight) {
+    noStroke();
+    for (int i = 0; i < rows; i++) {
+      if (i % 2 == 0) {
+        fill(245);
+      } else {
+        fill(235);
+      }
+      rect(50, startY + i*rowHeight, SCREENX-100, rowHeight);
+    }
+    stroke(0);
+  }
+
+  void drawFlightRow(TableRow row, int y, int rowHeight) {
+    String date = row.getString("FL_DATE").split(" ")[0];
+    String carrier = row.getString("MKT_CARRIER");
+    int flightNum = row.getInt("MKT_CARRIER_FL_NUM");
+    String origin = row.getString("ORIGIN");
+    String dest = row.getString("DEST");
+    float distance = row.getFloat("DISTANCE");
+    int cancelled = row.getInt("CANCELLED");
+    int diverted = row.getInt("DIVERTED");
+
+    fill(0);
+    textSize(12);
+    textAlign(LEFT, CENTER);
+    
+    float x = 60;
+    text(date, x, y + rowHeight/2); x += 120;
+    
+    // Flight number with airline color coding
+    fill(128, 0, 128);
+    text(carrier + flightNum, x, y + rowHeight/2); x += 100;
+    
+    // Route with arrow
+    fill(0, 0, 150);
+    text(origin + " → " + dest, x, y + rowHeight/2); x += 150;
+    
+    // Distance with unit
+    fill(0, 100, 0);
+    text(nf(distance, 0, 1) + " mi", x, y + rowHeight/2); x += 100;
+    
+    // Status indicators
+    if (cancelled == 1) {
+      fill(200, 0, 0);
+      text("CANCELLED", x, y + rowHeight/2);
+    } else if (diverted == 1) {
+      fill(255, 165, 0);
+      text("DIVERTED", x, y + rowHeight/2);
+    } else {
+      fill(0, 150, 0);
+      text("ON TIME", x, y + rowHeight/2);
+    }
+    
+    // Add subtle row separator
+    stroke(220);
+    line(50, y + rowHeight, SCREENX-50, y + rowHeight);
+    stroke(0);
+  }
+
+  void drawFooter() {
     fill(100);
     textSize(12);
-    text("Use mouse wheel to scroll", SCREENX - 200, SCREENY - 20);
-}
+    textAlign(RIGHT);
+    text("Use mouse wheel to scroll", SCREENX - 60, SCREENY - 20);
+    
+    // Show current filters
+    textAlign(LEFT);
+    String filters = "Filters: ";
+    if (!dropdown.selected.equals("ALL")) filters += "Airline: " + dropdown.selected + " ";
+    if (!dateDropdown.selected.equals("ALL")) filters += "Date: " + dateDropdown.selected + " ";
+    if (!selectedState.equals("")) filters += "State: " + selectedState + " ";
+    if (!showCancelled) filters += "(No cancelled flights)";
+    
+    if (!filters.equals("Filters: ")) {
+      text(filters, 60, SCREENY - 20);
+    }
+  }
   
   void mousePressed() 
   {
@@ -536,7 +611,7 @@ class DropdownWidget
       fill(255, 255, 255, 230);
       rect(x, y + h, w, min(totalHeight, maxDropdownHeight), 5);
 
-      
+      // Display visible options
       for (int i = 0; i < options.size(); i++) 
       {
         float optionY = y + h + i * h - scrollOffset;
@@ -760,7 +835,7 @@ class mapScreen extends Screen {
 
   void drawStateLabels() {
     textAlign(CENTER, CENTER);
-    textSize(20);
+    textSize(12);
     fill(255);
     for (int i = 0; i < states.length; i++) {
       text(states[i], coords[i][0], coords[i][1]);
