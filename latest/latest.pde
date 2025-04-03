@@ -536,7 +536,7 @@ class DropdownWidget
       fill(255, 255, 255, 230);
       rect(x, y + h, w, min(totalHeight, maxDropdownHeight), 5);
 
-      // Display visible options
+      
       for (int i = 0; i < options.size(); i++) 
       {
         float optionY = y + h + i * h - scrollOffset;
