@@ -1,19 +1,28 @@
 Table table;
+
 BarChartWidget barChart;
+
 PImage plane;
+
 PImage usaMap;
+
 Screen currentScreen;
+
 HomeScreen homeScreen;
+
 FlightScreen flightScreen;
+
 ChartScreen chartScreen;
+
 mapScreen mapScreen;
+
 boolean showCancelled = true;
+
 int SCREENX = 1200;
+
 int SCREENY = 780;
 
-
 PFont sitkaFont;
-
 
 void settings() 
 {
@@ -27,13 +36,9 @@ void settings()
 
 void setup() 
 {
-  
   sitkaFont = loadFont("Consolas.vlw");
-  
   table = loadTable("flights.csv", "header");
   barChart = new BarChartWidget(100, 100, SCREENX - 200, SCREENY - 300, table);
-  
- 
   homeScreen = new HomeScreen();
   flightScreen = new FlightScreen();
   chartScreen = new ChartScreen();
@@ -61,17 +66,26 @@ void mouseWheel(MouseEvent event)
   currentScreen.mouseWheel(event);
 }
 
-
 abstract class Screen 
 {
-  void display() {}
-  void mousePressed() {}
-  void mouseDragged() {}
-  void mouseWheel(MouseEvent event) {}
+  void display() 
+  {
+  }
+  
+  void mousePressed() 
+  {
+  }
+  
+  void mouseDragged() 
+  {
+  }
+  
+  void mouseWheel(MouseEvent event) 
+  {
+  }
 }
 
-
-class HomeScreen extends Screen
+class HomeScreen extends Screen 
 {
   ButtonWidget startButton;
   
@@ -86,17 +100,13 @@ class HomeScreen extends Screen
     image(plane, 0, 0);
     fill(0, 0, 50, 100);
     rect(0, 0, SCREENX, SCREENY);
-    
     fill(255);
     textSize(80);
     textAlign(CENTER, CENTER);
     text("FlyRadar", SCREENX/2, SCREENY/2 - 100);
-    
     textSize(24);
     text("Flight Data Visualization Tool", SCREENX/2, SCREENY/2 - 40);
-    
     startButton.display();
-    
     float pulseValue = 128 + 127 * sin(frameCount * 0.05);
     fill(pulseValue);
     textSize(18);
@@ -105,56 +115,52 @@ class HomeScreen extends Screen
   
   void mousePressed() 
   {
-    if (startButton.isClicked(mouseX, mouseY)) 
+    if (startButton.isClicked(mouseX, mouseY))
     {
       currentScreen = flightScreen;
     }
   }
 }
 
-
 class FlightScreen extends Screen 
 {
   DropdownWidget dropdown;
-  DropdownWidget dateDropdown; 
+  DropdownWidget dateDropdown;
   ButtonWidget chartButton;
   ButtonWidget cancelFilterButton;
   ButtonWidget mapButton;
   ButtonWidget clearStateButton;
   String selectedState = "";
-  
   float scrollOffset = 0;
   float targetScrollOffset = 0;
   float scrollVelocity = 0;
-  float scrollFriction = 0.5;       
-  float scrollSensitivity = 15;     
+  float scrollFriction = 0.5;
+  float scrollSensitivity = 15;
   
   FlightScreen() 
   {
-    dropdown = new DropdownWidget(150, 10, 150, 25); 
+    dropdown = new DropdownWidget(150, 10, 150, 25);
     dropdown.addOption("ALL");
-    for (TableRow row : table.rows()) 
+    for (TableRow row : table.rows())
     {
-        String carrier = row.getString("MKT_CARRIER");
-        if (!dropdown.options.contains(carrier)) 
-        {
-            dropdown.addOption(carrier);
-        }
+      String carrier = row.getString("MKT_CARRIER");
+      if (!dropdown.options.contains(carrier))
+      {
+        dropdown.addOption(carrier);
+      }
     }
-    
-    dateDropdown = new DropdownWidget(150, 50, 150, 25); 
+    dateDropdown = new DropdownWidget(150, 50, 150, 25);
     dateDropdown.addOption("ALL");
-    for (TableRow row : table.rows()) 
+    for (TableRow row : table.rows())
     {
-        String date = row.getString("FL_DATE").split(" ")[0];
-        if (!dateDropdown.options.contains(date)) 
-        {
-            dateDropdown.addOption(date);
-        }
+      String date = row.getString("FL_DATE").split(" ")[0];
+      if (!dateDropdown.options.contains(date))
+      {
+        dateDropdown.addOption(date);
+      }
     }
-    
-    chartButton = new ButtonWidget(970, 10, 200, 30, "View Chart"); 
-    cancelFilterButton = new ButtonWidget(750, 10, 200, 30, "Hide Cancelled"); 
+    chartButton = new ButtonWidget(970, 10, 200, 30, "View Chart");
+    cancelFilterButton = new ButtonWidget(750, 10, 200, 30, "Hide Cancelled");
     mapButton = new ButtonWidget(970, 50, 200, 30, "View Map");
     clearStateButton = new ButtonWidget(750, 50, 200, 30, "Clear State Filter");
   }
@@ -163,20 +169,17 @@ class FlightScreen extends Screen
   {
     textFont(sitkaFont);
     background(240);
-    
     fill(0);
     textSize(15);
     textAlign(LEFT);
-    text("Select Airline:", 10, 30); 
-    text("Select Date:", 10, 70);   
-    
+    text("Select Airline:", 10, 30);
+    text("Select Date:", 10, 70);
     targetScrollOffset += scrollVelocity;
     scrollVelocity *= scrollFriction;
-    if (abs(scrollVelocity) < 0.1) 
+    if (abs(scrollVelocity) < 0.1)
     {
       scrollVelocity = 0;
     }
-    
     int dataRowCount = 0;
     for (int i = 0; i < table.getRowCount(); i++)
     {
@@ -184,34 +187,33 @@ class FlightScreen extends Screen
       String carrier = row.getString("MKT_CARRIER");
       int cancelled = row.getInt("CANCELLED");
       if ((dropdown.selected.equals("ALL") || carrier.equals(dropdown.selected)) &&
-          (showCancelled || cancelled == 0)) 
+          (showCancelled || cancelled == 0))
       {
         dataRowCount++;
       }
     }
-    
     int maxScroll = dataRowCount * 25 - (SCREENY - 130);
-    if (maxScroll < 0) maxScroll = 0;
-    
-    if (targetScrollOffset < 0) 
+    if (maxScroll < 0)
+    {
+      maxScroll = 0;
+    }
+    if (targetScrollOffset < 0)
     {
       targetScrollOffset *= 0.5;
       scrollVelocity *= 0.5;
-    } 
-    else if (targetScrollOffset > maxScroll) 
+    }
+    else if (targetScrollOffset > maxScroll)
     {
       float overshoot = targetScrollOffset - maxScroll;
       targetScrollOffset = maxScroll + overshoot * 0.5;
       scrollVelocity *= 0.5;
     }
-    
     float scrollDifference = targetScrollOffset - scrollOffset;
     scrollOffset += scrollDifference * 0.3;
-    if (abs(scrollDifference) < 0.1 && abs(scrollVelocity) < 0.1) 
+    if (abs(scrollDifference) < 0.1 && abs(scrollVelocity) < 0.1)
     {
       scrollOffset = targetScrollOffset;
     }
-    
     displayFlights();
     dateDropdown.display();
     dropdown.display();
@@ -219,157 +221,92 @@ class FlightScreen extends Screen
     chartButton.display();
     cancelFilterButton.display();
     mapButton.display();
-    
     fill(100);
     textSize(18);
     textAlign(RIGHT);
-    text("Showing " + (showCancelled ? "all flights" : "only non-cancelled flights"), 
-         cancelFilterButton.x - 10, cancelFilterButton.y + 20);
+    text("Showing " + (showCancelled ? "all flights" : "only non-cancelled flights"), cancelFilterButton.x - 10, cancelFilterButton.y + 20);
   }
   
-  
-  void displayFlights() {
-   
-    
-    // Column headers
+  void displayFlights() 
+  {
     drawColumnHeaders();
-    
-    // Flight data
     int yOffset = 160 - (int)scrollOffset;
     int maxY = SCREENY - 20;
-    int rowHeight = 30; // Increased row height
+    int rowHeight = 30;
     int startIndex = max(0, (int)(scrollOffset / rowHeight));
     int visibleRows = (SCREENY - 160) / rowHeight + 2;
     int processedRows = 0;
     int totalFilteredRows = 0;
-
-    // Table-like background
-    
-        for (int i = 0; i < table.getRowCount(); i++) {
-            TableRow row = table.getRow(i);
-            if (!passesFilters(row)) continue;
-
-            totalFilteredRows++;
-
-            if (totalFilteredRows >= startIndex && processedRows < visibleRows) {
-                if (yOffset > 160 && yOffset < maxY) {
-                    // Draw single flight row without background shading
-                    drawFlightRow(row, yOffset, rowHeight);
-                    processedRows++;
-                }
-            }
-            yOffset += rowHeight;
+    for (int i = 0; i < table.getRowCount(); i++)
+    {
+      TableRow row = table.getRow(i);
+      if (!passesFilters(row))
+      {
+        continue;
+      }
+      totalFilteredRows++;
+      if (totalFilteredRows >= startIndex && processedRows < visibleRows)
+      {
+        if (yOffset > 160 && yOffset < maxY)
+        {
+          drawFlightRow(row, yOffset, rowHeight);
+          processedRows++;
         }
+      }
+      yOffset += rowHeight;
+    }
     drawScrollIndicator(totalFilteredRows, rowHeight);
     drawFooter();
   }
-
-  boolean passesFilters(TableRow row) {
+  
+  boolean passesFilters(TableRow row) 
+  {
     String carrier = row.getString("MKT_CARRIER");
     int cancelled = row.getInt("CANCELLED");
-    String date = row.getString("FL_DATE").split(" ")[0]; 
+    String date = row.getString("FL_DATE").split(" ")[0];
     String originState = row.getString("ORIGIN_STATE_ABR");
-
     return (dropdown.selected.equals("ALL") || carrier.equals(dropdown.selected)) &&
            (dateDropdown.selected.equals("ALL") || date.equals(dateDropdown.selected)) &&
            (showCancelled || cancelled == 0) &&
            (selectedState.equals("") || originState.equals(selectedState));
   }
-
-  int getFilteredCount() {
+  
+  int getFilteredCount() 
+  {
     int count = 0;
-    for (int i = 0; i < table.getRowCount(); i++) {
-      if (passesFilters(table.getRow(i))) count++;
+    for (int i = 0; i < table.getRowCount(); i++)
+    {
+      if (passesFilters(table.getRow(i)))
+      {
+        count++;
+      }
     }
     return count;
   }
-  void drawHeaderArea() {
-    // Fixed header that won't scroll
-    fill(240);
-    rect(0, 0, SCREENX, 160);
-    
-    // Title and filter info
-    fill(50, 50, 100);
-    textSize(18);
-    textAlign(LEFT);
-    text("Filtered Flights (" + getFilteredCount() + ")", 50, 110);
-    
-    // Draw your dropdowns and buttons here
-    dateDropdown.display();
-    dropdown.display();
-    clearStateButton.display();
-    chartButton.display();
-    cancelFilterButton.display();
-    mapButton.display();
-    
-    // Filter status text
-    fill(100);
-    textSize(14);
-    textAlign(RIGHT);
-    text("Showing " + (showCancelled ? "all flights" : "only non-cancelled flights"), 
-         cancelFilterButton.x - 10, cancelFilterButton.y + 20);
-}
-
-  void drawColumnHeaders() {
+  
+  void drawColumnHeaders() 
+  {
     fill(70, 70, 120);
-    rect(50, 130, SCREENX-100, 30, 5);
+    rect(50, 130, SCREENX - 100, 30, 5);
     fill(255);
-    textSize(18);
+    textSize(14);
     textAlign(LEFT, CENTER);
-    
-    float dateCol = 60;         // Date
-    float flightCol = dateCol + 150; // Flight # (wider)
-    float routeCol = flightCol + 200; // Route (widest)
-    float distanceCol = routeCol + 200; // Distance
-    float statusCol = distanceCol + 150; // Status
+    float dateCol = 60;
+    float flightCol = dateCol + 150;
+    float routeCol = flightCol + 200;
+    float distanceCol = routeCol + 200;
+    float statusCol = distanceCol + 150;
+    float viewCol = statusCol + 100;
     text("Date", dateCol, 145);
     text("Flight #", flightCol, 145);
-    text("Route", routeCol, 145); 
-    text("Distance", distanceCol, 145); 
-    text("Status", statusCol, 145); 
+    text("Route", routeCol, 145);
+    text("Distance", distanceCol, 145);
+    text("Status", statusCol, 145);
+    text("View", viewCol, 145);
   }
-
-
-void drawScrollIndicator() {
-    // Adjust scroll indicator calculations to account for clipped area
-    int visibleHeight = SCREENY - 180;
-    int totalHeight = getTotalContentHeight();
-    
-    if (totalHeight <= visibleHeight) return;
-    
-    float scrollRatio = visibleHeight / (float)totalHeight;
-    int scrollbarHeight = max(30, (int)(visibleHeight * scrollRatio));
-    int scrollbarY = 160 + (int)(scrollOffset * (visibleHeight - scrollbarHeight) / (totalHeight - visibleHeight));
-    
-    fill(200, 200, 200, 150);
-    rect(SCREENX - 20, 160, 10, visibleHeight);
-    
-    fill(100, 100, 100, 200);
-    rect(SCREENX - 20, scrollbarY, 10, scrollbarHeight, 5);
-}
-
-int getTotalContentHeight() {
-    int rowCount = 0;
-    for (int i = 0; i < table.getRowCount(); i++) {
-        if (passesFilters(table.getRow(i))) rowCount++;
-    }
-    return 30 + (rowCount * 30); // Header + rows
-}
-
-  void drawTableBackground(int startY, int rows, int rowHeight) {
-    noStroke();
-    for (int i = 0; i < rows; i++) {
-      if (i % 2 == 0) {
-        fill(245);
-      } else {
-        fill(235);
-      }
-      rect(50, startY + i*rowHeight, SCREENX-100, rowHeight);
-    }
-    stroke(0);
-  }
-
-  void drawFlightRow(TableRow row, int y, int rowHeight) {
+  
+  void drawFlightRow(TableRow row, int y, int rowHeight) 
+  {
     String date = row.getString("FL_DATE").split(" ")[0];
     String carrier = row.getString("MKT_CARRIER");
     int flightNum = row.getInt("MKT_CARRIER_FL_NUM");
@@ -378,64 +315,77 @@ int getTotalContentHeight() {
     float distance = row.getFloat("DISTANCE");
     int cancelled = row.getInt("CANCELLED");
     int diverted = row.getInt("DIVERTED");
-
-    fill(0);
+    float dateCol = 60;
+    float flightCol = dateCol + 150;
+    float routeCol = flightCol + 200;
+    float distanceCol = routeCol + 200;
+    float statusCol = distanceCol + 150;
     textSize(18);
     textAlign(LEFT, CENTER);
-    
-    float dateCol = 60;         // Date
-    float flightCol = dateCol + 150; // Flight # (wider)
-    float routeCol = flightCol + 200; // Route (widest)
-    float distanceCol = routeCol + 200; // Distance
-    float statusCol = distanceCol + 150; // Status
-    
-    text(date, dateCol, y + rowHeight/2); ;
-    
-    // Flight number with airline color coding
+    fill(0);
+    text(date, dateCol, y + rowHeight / 2);
     fill(128, 0, 128);
-    text(carrier + flightNum, flightCol, y + rowHeight/2); 
-    
-    // Route with arrow
+    text(carrier + flightNum, flightCol, y + rowHeight / 2);
     fill(0, 0, 150);
-    text(origin + " → " + dest, routeCol, y + rowHeight/2); 
-    
-    // Distance with unit
+    text(origin + " → " + dest, routeCol, y + rowHeight / 2);
     fill(0, 100, 0);
-    text(nf(distance, 0, 1) + " mi", distanceCol, y + rowHeight/2); 
-    
-    // Status indicators
-    if (cancelled == 1) {
+    text(nf(distance, 0, 1) + " mi", distanceCol, y + rowHeight / 2);
+    if (cancelled == 1)
+    {
       fill(200, 0, 0);
-      text("CANCELLED", statusCol, y + rowHeight/2);
-    } else if (diverted == 1) {
-      fill(255, 165, 0);
-      text("DIVERTED", statusCol, y + rowHeight/2);
-    } else {
-      fill(0, 150, 0);
-      text("ON TIME", statusCol, y + rowHeight/2);
+      text("CANCELLED", statusCol, y + rowHeight / 2);
     }
-    
-    // Add subtle row separator
+    else if (diverted == 1)
+    {
+      fill(255, 165, 0);
+      text("DIVERTED", statusCol, y + rowHeight / 2);
+    }
+    else
+    {
+      fill(0, 150, 0);
+      text("ON TIME", statusCol, y + rowHeight / 2);
+    }
     stroke(220);
-    line(50, y + rowHeight, SCREENX-50, y + rowHeight);
+    line(50, y + rowHeight, SCREENX - 50, y + rowHeight);
     stroke(0);
+    int viewButtonW = 60;
+    int viewButtonH = 20;
+    int viewButtonX = int(statusCol + 100);
+    int viewButtonY = y + (rowHeight - viewButtonH) / 2;
+    fill(50, 150, 50);
+    rect(viewButtonX, viewButtonY, viewButtonW, viewButtonH, 5);
+    fill(255);
+    textAlign(CENTER, CENTER);
+    text("View", viewButtonX + viewButtonW / 2, viewButtonY + viewButtonH / 2);
+    textAlign(LEFT, BASELINE);
   }
-
-  void drawFooter() {
+  
+  void drawFooter() 
+  {
     fill(100);
     textSize(20);
     textAlign(RIGHT);
     text("Use mouse wheel to scroll", SCREENX - 60, 115);
-    
-    // Show current filters
     textAlign(LEFT);
     String filters = "Filters: ";
-    if (!dropdown.selected.equals("ALL")) filters += "Airline: " + dropdown.selected + " ";
-    if (!dateDropdown.selected.equals("ALL")) filters += "Date: " + dateDropdown.selected + " ";
-    if (!selectedState.equals("")) filters += "State: " + selectedState + " ";
-    if (!showCancelled) filters += "(No cancelled flights)";
-    
-    if (!filters.equals("Filters: ")) {
+    if (!dropdown.selected.equals("ALL"))
+    {
+      filters += "Airline: " + dropdown.selected + " ";
+    }
+    if (!dateDropdown.selected.equals("ALL"))
+    {
+      filters += "Date: " + dateDropdown.selected + " ";
+    }
+    if (!selectedState.equals(""))
+    {
+      filters += "State: " + selectedState + " ";
+    }
+    if (!showCancelled)
+    {
+      filters += "(No cancelled flights)";
+    }
+    if (!filters.equals("Filters: "))
+    {
       text(filters, 50, 115);
     }
   }
@@ -443,36 +393,74 @@ int getTotalContentHeight() {
   void mousePressed() 
   {
     dropdown.checkClick(mouseX, mouseY);
-    dateDropdown.checkClick(mouseX, mouseY);  
-    if (chartButton.isClicked(mouseX, mouseY)) 
+    dateDropdown.checkClick(mouseX, mouseY);
+    if (chartButton.isClicked(mouseX, mouseY))
     {
       currentScreen = chartScreen;
+      return;
     }
-    if (cancelFilterButton.isClicked(mouseX, mouseY)) 
+    if (cancelFilterButton.isClicked(mouseX, mouseY))
     {
       showCancelled = !showCancelled;
       cancelFilterButton.label = showCancelled ? "Hide Cancelled" : "Show All Flights";
       scrollOffset = 0;
       targetScrollOffset = 0;
       scrollVelocity = 0;
+      return;
     }
-    if (mapButton.isClicked(mouseX, mouseY)) 
+    if (mapButton.isClicked(mouseX, mouseY))
     {
-      currentScreen = mapScreen; 
+      currentScreen = mapScreen;
+      return;
     }
-    if (clearStateButton.isClicked(mouseX, mouseY)) 
+    if (clearStateButton.isClicked(mouseX, mouseY))
     {
       selectedState = "";
+      return;
     }
-    if (mouseX > SCREENX - 25 && mouseX < SCREENX - 10 && mouseY > 110 && mouseY < SCREENY - 20) 
+    if (mouseX > SCREENX - 25 && mouseX < SCREENX - 10 && mouseY > 110 && mouseY < SCREENY - 20)
     {
       handleScrollbarDrag();
+      return;
+    }
+    int yOffset = 160 - (int)scrollOffset;
+    int rowHeight = 30;
+    int startIndex = max(0, (int)(scrollOffset / rowHeight));
+    int visibleRows = (SCREENY - 160) / rowHeight + 2;
+    int processedRows = 0;
+    int totalFilteredRows = 0;
+    for (int i = 0; i < table.getRowCount(); i++)
+    {
+      TableRow row = table.getRow(i);
+      if (!passesFilters(row))
+      {
+        continue;
+      }
+      totalFilteredRows++;
+      if (totalFilteredRows >= startIndex && processedRows < visibleRows)
+      {
+        if (yOffset > 160 && yOffset < SCREENY - 20)
+        {
+          float statusCol = 760;
+          int viewButtonW = 60;
+          int viewButtonH = 20;
+          int viewButtonX = int(statusCol + 100);
+          int viewButtonY = yOffset + (rowHeight - viewButtonH) / 2;
+          if (mouseX >= viewButtonX && mouseX <= viewButtonX + viewButtonW && mouseY >= viewButtonY && mouseY <= viewButtonY + viewButtonH)
+          {
+            currentScreen = new FlightMapScreen(row);
+            return;
+          }
+          processedRows++;
+        }
+      }
+      yOffset += rowHeight;
     }
   }
   
   void mouseDragged() 
   {
-    if (mouseX > SCREENX - 25 && mouseX < SCREENX - 10 && mouseY > 110 && mouseY < SCREENY - 20) 
+    if (mouseX > SCREENX - 25 && mouseX < SCREENX - 10 && mouseY > 110 && mouseY < SCREENY - 20)
     {
       handleScrollbarDrag();
       scrollVelocity = 0;
@@ -481,61 +469,62 @@ int getTotalContentHeight() {
   
   void mouseWheel(MouseEvent event) 
   {
-  if (dropdown.expanded) 
-  {
-    dropdown.mouseWheel(event);
-  } 
-  else if (dateDropdown.expanded) 
-  {
-    dateDropdown.mouseWheel(event);
-  } 
-  else 
-  {
-    float e = event.getCount();
-    scrollVelocity += e * scrollSensitivity;
-    scrollVelocity = constrain(scrollVelocity, -100, 100);
-  }
+    if (dropdown.expanded)
+    {
+      dropdown.mouseWheel(event);
+    }
+    else if (dateDropdown.expanded)
+    {
+      dateDropdown.mouseWheel(event);
+    }
+    else
+    {
+      float e = event.getCount();
+      scrollVelocity += e * scrollSensitivity;
+      scrollVelocity = constrain(scrollVelocity, -100, 100);
+    }
   }
   
   void handleScrollbarDrag() 
   {
     int totalFilteredRows = 0;
-    for (int i = 0; i < table.getRowCount(); i++) 
+    for (int i = 0; i < table.getRowCount(); i++)
     {
       TableRow row = table.getRow(i);
       String carrier = row.getString("MKT_CARRIER");
       int cancelled = row.getInt("CANCELLED");
       if ((dropdown.selected.equals("ALL") || carrier.equals(dropdown.selected)) &&
-          (showCancelled || cancelled == 0)) 
+          (showCancelled || cancelled == 0))
       {
         totalFilteredRows++;
       }
     }
     int totalHeight = totalFilteredRows * 25;
     int maxScroll = totalHeight - (SCREENY - 130);
-    if (maxScroll < 0) maxScroll = 0;
+    if (maxScroll < 0)
+    {
+      maxScroll = 0;
+    }
     float scrollRatio = constrain((mouseY - 110) / (float)(SCREENY - 130 - 30), 0, 1);
     targetScrollOffset = scrollRatio * maxScroll;
   }
   
   void drawScrollIndicator(int totalRows, int rowHeight) 
+  {
+    int totalHeight = totalRows * rowHeight;
+    if (totalHeight <= SCREENY - 130)
     {
-  int totalHeight = totalRows * rowHeight;
-  if (totalHeight <= SCREENY - 130) return;
-  
-  int scrollbarHeight = (SCREENY - 130) * (SCREENY - 130) / totalHeight;
-  scrollbarHeight = max(30, scrollbarHeight);
-  int scrollbarY = 110 + (int)(scrollOffset * (SCREENY - 130 - scrollbarHeight) / (totalHeight - (SCREENY - 130)));
-  scrollbarY = constrain(scrollbarY, 110, SCREENY - scrollbarHeight - 20);
-  
-  fill(200, 200, 200, 150);
-  rect(SCREENX - 20, 110, 10, SCREENY - 130);
-  
-  fill(100, 100, 100, 200);
-  rect(SCREENX - 20, scrollbarY, 10, scrollbarHeight, 5);
+      return;
     }
+    float scrollRatio = (SCREENY - 130) / (float)totalHeight;
+    int scrollbarHeight = max(30, (int)((SCREENY - 130) * scrollRatio));
+    int scrollbarY = 160 + (int)(scrollOffset * (SCREENY - 130 - scrollbarHeight) / (totalHeight - (SCREENY - 130)));
+    fill(200, 200, 200, 150);
+    rect(SCREENX - 20, 160, 10, SCREENY - 130);
+    fill(100, 100, 100, 200);
+    rect(SCREENX - 20, scrollbarY, 10, scrollbarHeight, 5);
+  }
 }
-
 
 class ChartScreen extends Screen 
 {
@@ -555,15 +544,225 @@ class ChartScreen extends Screen
   
   void mousePressed() 
   {
-    if (backButton.isClicked(mouseX, mouseY)) 
+    if (backButton.isClicked(mouseX, mouseY))
     {
       currentScreen = flightScreen;
     }
   }
 }
 
+class FlightMapScreen extends Screen 
+{
+  TableRow flightRow;
+  ButtonWidget backButton;
+  float minLon = -125.0;
+  float maxLon = -66.0;
+  float minLat = 24.0;
+  float maxLat = 50.0;
+  HashMap<String, float[]> airportCoords = new HashMap<String, float[]>();
+  HashMap<String, PVector> airportOffsets = new HashMap<String, PVector>();
+  
+  FlightMapScreen(TableRow row) 
+  {
+    flightRow = row;
+    backButton = new ButtonWidget(50, 10, 100, 30, "Back");
+    airportCoords.put("ABQ", new float[]{35.0402f, -106.6090f});
+    airportCoords.put("AUS", new float[]{30.1975f, -97.6664f});
+    airportCoords.put("ATL", new float[]{33.6407f, -84.4277f});
+    airportCoords.put("BNA", new float[]{36.1263f, -86.6774f});
+    airportCoords.put("BOS", new float[]{42.3656f, -71.0096f});
+    airportCoords.put("BWI", new float[]{39.1754f, -76.6684f});
+    airportCoords.put("CLE", new float[]{41.4058f, -81.8539f});
+    airportCoords.put("CLT", new float[]{35.2144f, -80.9473f});
+    airportCoords.put("CVG", new float[]{39.0533f, -84.6630f});
+    airportCoords.put("DAL", new float[]{32.8471f, -96.8517f});
+    airportCoords.put("DCA", new float[]{38.8512f, -77.0402f});
+    airportCoords.put("DEN", new float[]{39.8561f, -104.6737f});
+    airportCoords.put("DFW", new float[]{32.8998f, -97.0403f});
+    airportCoords.put("DTW", new float[]{42.2162f, -83.3554f});
+    airportCoords.put("EWR", new float[]{40.6895f, -74.1745f});
+    airportCoords.put("FLL", new float[]{26.0726f, -80.1527f});
+    airportCoords.put("HNL", new float[]{21.3245f, -157.9251f});
+    airportCoords.put("HOU", new float[]{29.6454f, -95.2789f});
+    airportCoords.put("IAD", new float[]{38.9531f, -77.4565f});
+    airportCoords.put("IAH", new float[]{29.9902f, -95.3368f});
+    airportCoords.put("IND", new float[]{39.7169f, -86.2956f});
+    airportCoords.put("JAX", new float[]{30.4941f, -81.6879f});
+    airportCoords.put("JFK", new float[]{40.6413f, -73.7781f});
+    airportCoords.put("LAS", new float[]{36.0840f, -115.1537f});
+    airportCoords.put("LAX", new float[]{33.9416f, -118.4085f});
+    airportCoords.put("LGA", new float[]{40.7769f, -73.8740f});
+    airportCoords.put("MCI", new float[]{39.2976f, -94.7139f});
+    airportCoords.put("MCO", new float[]{28.4312f, -81.3081f});
+    airportCoords.put("MIA", new float[]{25.7959f, -80.2870f});
+    airportCoords.put("MKE", new float[]{42.9470f, -87.8966f});
+    airportCoords.put("MSP", new float[]{44.8848f, -93.2223f});
+    airportCoords.put("MSY", new float[]{29.9934f, -90.2580f});
+    airportCoords.put("OAK", new float[]{37.7126f, -122.2197f});
+    airportCoords.put("OKC", new float[]{35.3931f, -97.6008f});
+    airportCoords.put("ONT", new float[]{34.0559f, -117.6005f});
+    airportCoords.put("ORD", new float[]{41.9742f, -87.9073f});
+    airportCoords.put("PDX", new float[]{45.5887f, -122.5975f});
+    airportCoords.put("PHL", new float[]{39.8729f, -75.2437f});
+    airportCoords.put("PHX", new float[]{33.4342f, -112.0110f});
+    airportCoords.put("PIT", new float[]{40.4914f, -80.2329f});
+    airportCoords.put("RDU", new float[]{35.8776f, -78.7870f});
+    airportCoords.put("RSW", new float[]{26.5362f, -81.7552f});
+    airportCoords.put("SAN", new float[]{32.7338f, -117.1933f});
+    airportCoords.put("SAT", new float[]{29.4246f, -98.4861f});
+    airportCoords.put("SEA", new float[]{47.4502f, -122.3088f});
+    airportCoords.put("SFO", new float[]{37.6213f, -122.3790f});
+    airportCoords.put("SJC", new float[]{37.3639f, -121.9289f});
+    airportCoords.put("SJU", new float[]{18.4394f, -66.0018f});
+    airportCoords.put("SLC", new float[]{40.7899f, -111.9791f});
+    airportCoords.put("SMF", new float[]{38.6954f, -121.5908f});
+    airportCoords.put("STL", new float[]{38.7487f, -90.3700f});
+    airportCoords.put("TPA", new float[]{27.9755f, -82.5332f});
+    airportCoords.put("TUL", new float[]{36.1984f, -95.8881f});
+  }
+  
+  void display() 
+  {
+    background(255);
+    image(usaMap, 0, 0, SCREENX, SCREENY);
+    backButton.display();
+    String flightInfo = flightRow.getString("FL_DATE") + " | " + flightRow.getString("MKT_CARRIER") + flightRow.getInt("MKT_CARRIER_FL_NUM") + " | " + flightRow.getString("ORIGIN") + " → " + flightRow.getString("DEST");
+    fill(0);
+    textSize(18);
+    textAlign(CENTER, CENTER);
+    text(flightInfo, SCREENX/2, 40);
+    String origin = flightRow.getString("ORIGIN");
+    String dest = flightRow.getString("DEST");
+    PVector originPos = getAirportScreenPosition(origin);
+    PVector destPos = getAirportScreenPosition(dest);
+    fill(255, 0, 0);
+    noStroke();
+    ellipse(originPos.x, originPos.y, 10, 10);
+    ellipse(destPos.x, destPos.y, 10, 10);
+    fill(255);
+    textSize(14);
+    textAlign(CENTER, CENTER);
+    text(origin, originPos.x, originPos.y - 15);
+    text(dest, destPos.x, destPos.y - 15);
+    stroke(0, 0, 255);
+    strokeWeight(3);
+    line(originPos.x, originPos.y, destPos.x, destPos.y);
+  }
+  
+  void mousePressed() 
+  {
+    if (backButton.isClicked(mouseX, mouseY))
+    {
+      currentScreen = flightScreen;
+    }
+  }
+  
+  PVector getAirportScreenPosition(String code) 
+  {
+    float[] latLon = airportCoords.get(code);
+    if (latLon == null)
+    {
+      return new PVector(SCREENX/2, SCREENY/2);
+    }
+    float lat = latLon[0];
+    float lon = latLon[1];
+    float x = map(lon, minLon, maxLon, 0, SCREENX);
+    float y = map(lat, maxLat, minLat, 0, SCREENY);
+    PVector offset = airportOffsets.get(code);
+    if (offset != null)
+    {
+      x += offset.x;
+      y += offset.y;
+    }
+    return new PVector(x, y);
+  }
+}
 
-class ButtonWidget 
+class mapScreen extends Screen 
+{
+  PImage usaMap;
+  ButtonWidget backButton;
+  String[] states;
+  float[][] coords;
+  
+  mapScreen() 
+  {
+    usaMap = loadImage("usaMap.png");
+    backButton = new ButtonWidget(50, 10, 100, 30, "Back");
+    states = new String[]
+    {
+      "WA", "OR", "CA", "NV", "ID", "MT", "WY", "UT", "AZ", "CO", "NM", 
+      "ND", "SD", "NE", "KS", "OK", "TX", 
+      "MN", "IA", "MO", "AR", "LA", 
+      "WI", "IL", "MS", "AL", 
+      "MI", "IN", "OH", "KY", "TN", 
+      "FL", "GA", "SC", "NC", "VA", "WV", 
+      "PA", "NY", "NJ", "DE", "MD", "CT", "MA", "VT", "NH", "ME", 
+      "AK", "HI"
+    };
+    coords = new float[][]
+    {
+      {165, 95}, {133, 184}, {117, 380}, {191, 344}, {240, 226}, {368, 144}, {389, 258}, {286, 339}, {271, 458}, {405, 367}, {381, 460},
+      {524, 152}, {521, 228}, {537, 296}, {567, 387}, {566, 455}, {567, 571},
+      {632, 184}, {653, 283}, {673, 378}, {680, 480}, {682, 569},
+      {725, 212}, {738, 321}, {744, 538}, {809, 530},
+      {825, 238}, {807, 324}, {882, 320}, {861, 387}, {818, 448},
+      {947, 619}, {891, 518}, {940, 484}, {973, 437}, {976, 380}, {918, 363},
+      {973, 287}, {1013, 228}, {1043, 308}, {1027, 335}, {994, 328}, {1072, 255}, {1077, 231}, {1051, 179}, {1082, 196}, {1127, 139},
+      {90, 665}, {220, 690}
+    };
+  }
+  
+  void display() 
+  {
+    background(255);
+    image(usaMap, 0, 0, SCREENX, SCREENY);
+    drawStateLabels();
+    backButton.display();
+  }
+  
+  void drawStateLabels() 
+  {
+    textAlign(CENTER, CENTER);
+    textSize(12);
+    fill(255);
+    for (int i = 0; i < states.length; i++)
+    {
+      text(states[i], coords[i][0], coords[i][1]);
+    }
+  }
+  
+  void mousePressed() 
+  {
+    String clickedState = getClickedState(mouseX, mouseY);
+    if (clickedState != null)
+    {
+      flightScreen.selectedState = clickedState;
+      currentScreen = flightScreen;
+    }
+    if (mouseX > 50 && mouseX < 150 && mouseY > 10 && mouseY < 30)
+    {
+      currentScreen = flightScreen;
+    }
+  }
+  
+  String getClickedState(int mx, int my) 
+  {
+    for (int i = 0; i < coords.length; i++)
+    {
+      float cx = coords[i][0];
+      float cy = coords[i][1];
+      float boxSize = 20;
+      if (mx > cx - boxSize/2 && mx < cx + boxSize/2 && my > cy - boxSize/2 && my < cy + boxSize/2)
+      {
+        return states[i];
+      }
+    }
+    return null;
+  }
+}
+
+class ButtonWidget extends Screen 
 {
   int x, y, w, h;
   String label;
@@ -579,36 +778,33 @@ class ButtonWidget
   
   void display() 
   {
-    
-    if (label.equals("Back")) 
+    if (label.equals("Back"))
     {
       fill(200, 50, 50);
-    } 
-    else if (label.contains("Cancelled") || label.contains("Show All")) 
+    }
+    else if (label.contains("Cancelled") || label.contains("Show All"))
     {
       fill(50, 100, 200);
-    } 
-    else 
+    }
+    else
     {
       fill(50, 150, 50);
     }
-    
-    if (isHovered()) 
+    if (isHovered())
     {
-      if (label.equals("Back")) 
+      if (label.equals("Back"))
       {
         fill(210, 60, 60);
-      } 
-      else if (label.contains("Cancelled") || label.contains("Show All")) 
+      }
+      else if (label.contains("Cancelled") || label.contains("Show All"))
       {
         fill(60, 110, 210);
-      } 
-      else 
+      }
+      else
       {
         fill(60, 160, 60);
       }
     }
-    
     rect(x, y, w, h, 5);
     fill(255);
     textSize(14);
@@ -627,15 +823,15 @@ class ButtonWidget
   }
 }
 
-class DropdownWidget 
+class DropdownWidget extends Screen 
 {
   int x, y, w, h;
   ArrayList<String> options;
   boolean expanded = false;
   String selected;
-  float scrollOffset = 0; // Scroll offset for the dropdown
-  float scrollSensitivity = 10; // Sensitivity for scrolling
-
+  float scrollOffset = 0;
+  float scrollSensitivity = 10;
+  
   DropdownWidget(int x, int y, int w, int h) 
   {
     this.x = x;
@@ -645,34 +841,32 @@ class DropdownWidget
     this.options = new ArrayList<String>();
     this.selected = "";
   }
-
+  
   void addOption(String option) 
   {
     options.add(option);
-    if (selected.equals("")) selected = option;
+    if (selected.equals(""))
+    {
+      selected = option;
+    }
   }
-
+  
   void display() 
   {
     fill(220);
     rect(x, y, w, h, 5);
     fill(0);
     text(selected, x + 10, y + h - 5);
-
-    if (expanded) 
+    if (expanded)
     {
-      int maxDropdownHeight = SCREENY - y - h - 20; 
-      int visibleOptions = max(1, maxDropdownHeight / h); 
+      int maxDropdownHeight = SCREENY - y - h - 20;
       int totalHeight = options.size() * h;
-
       fill(255, 255, 255, 230);
       rect(x, y + h, w, min(totalHeight, maxDropdownHeight), 5);
-
-      // Display visible options
-      for (int i = 0; i < options.size(); i++) 
+      for (int i = 0; i < options.size(); i++)
       {
         float optionY = y + h + i * h - scrollOffset;
-        if (optionY >= y + h && optionY < y + h + maxDropdownHeight) 
+        if (optionY >= y + h && optionY < y + h + maxDropdownHeight)
         {
           fill(240);
           rect(x, optionY, w, h, 5);
@@ -680,8 +874,7 @@ class DropdownWidget
           text(options.get(i), x + 10, optionY + h - 5);
         }
       }
-
-      if (totalHeight > maxDropdownHeight) 
+      if (totalHeight > maxDropdownHeight)
       {
         float scrollbarHeight = max(30, (float)maxDropdownHeight / totalHeight * maxDropdownHeight);
         float scrollbarY = y + h + scrollOffset / totalHeight * maxDropdownHeight;
@@ -692,23 +885,23 @@ class DropdownWidget
       }
     }
   }
-
+  
   void checkClick(int mx, int my) 
   {
-    if (mx > x && mx < x + w && my > y && my < y + h) 
+    if (mx > x && mx < x + w && my > y && my < y + h)
     {
       expanded = !expanded;
-    } 
-    else if (expanded) 
+    }
+    else if (expanded)
     {
-      for (int i = 0; i < options.size(); i++) 
+      int maxDropdownHeight = SCREENY - y - h - 20;
+      for (int i = 0; i < options.size(); i++)
       {
         float optionY = y + h + i * h - scrollOffset;
-        if (mx > x && mx < x + w && my > optionY && my < optionY + h) 
+        if (mx > x && mx < x + w && my > optionY && my < optionY + h && optionY >= y + h && optionY < y + h + maxDropdownHeight)
         {
           selected = options.get(i);
           expanded = false;
-
           flightScreen.scrollOffset = 0;
           flightScreen.targetScrollOffset = 0;
           flightScreen.scrollVelocity = 0;
@@ -716,19 +909,22 @@ class DropdownWidget
       }
     }
   }
-
+  
   void mouseWheel(MouseEvent event) 
   {
-    if (expanded) 
+    if (expanded)
     {
       float e = event.getCount();
       scrollOffset += e * scrollSensitivity;
-      scrollOffset = constrain(scrollOffset, 0, max(0, options.size() * h - (SCREENY - y - h - 20)));
+      float totalHeight = options.size() * h;
+      float maxDropdownHeight = SCREENY - y - h - 20;
+      float maxScroll = max(0, totalHeight - maxDropdownHeight);
+      scrollOffset = constrain(scrollOffset, 0, maxScroll);
     }
   }
 }
 
-class BarChartWidget 
+class BarChartWidget extends Screen 
 {
   int x, y, w, h;
   HashMap<String, Integer> flightCounts;
@@ -745,30 +941,25 @@ class BarChartWidget
     this.flightCounts = new HashMap<>();
     this.cancelledCounts = new HashMap<>();
     this.divertedCounts = new HashMap<>();
-    
-    for (TableRow row : table.rows()) 
+    for (TableRow row : table.rows())
     {
       String carrier = row.getString("MKT_CARRIER");
       int cancelled = row.getInt("CANCELLED");
-      int diverted = row.getInt("DIVERTED");  
-
+      int diverted = row.getInt("DIVERTED");
       flightCounts.put(carrier, flightCounts.getOrDefault(carrier, 0) + 1);
-  
-      if (cancelled == 1) 
+      if (cancelled == 1)
       {
-         cancelledCounts.put(carrier, cancelledCounts.getOrDefault(carrier, 0) + 1);
+        cancelledCounts.put(carrier, cancelledCounts.getOrDefault(carrier, 0) + 1);
       }
-
-      if (diverted == 1) 
+      if (diverted == 1)
       {
         divertedCounts.put(carrier, divertedCounts.getOrDefault(carrier, 0) + 1);
       }
     }
-    
     maxFlights = 0;
-    for (int count : flightCounts.values()) 
+    for (int count : flightCounts.values())
     {
-      if (count > maxFlights) 
+      if (count > maxFlights)
       {
         maxFlights = count;
       }
@@ -783,149 +974,63 @@ class BarChartWidget
     textSize(40);
     textAlign(CENTER);
     text("Flights by Airline", SCREENX / 2, 60);
-    
     int barWidth = (w - 100) / flightCounts.size();
     int index = 0;
     int startX = x + 50;
-    
-    for (String carrier : flightCounts.keySet()) 
+    for (String carrier : flightCounts.keySet())
     {
       int flights = flightCounts.get(carrier);
       int cancelled = cancelledCounts.getOrDefault(carrier, 0);
+      int diverted = divertedCounts.getOrDefault(carrier, 0);
       int barHeight = int(map(flights, 0, maxFlights, 0, h - 100));
       int cancelledHeight = int(map(cancelled, 0, maxFlights, 0, h - 100));
+      int divertedHeight = int(map(diverted, 0, maxFlights, 0, h - 100));
       
       fill(100, 100, 255);
       rect(startX + index * barWidth, y + h - barHeight, barWidth - 5, barHeight);
-      
       fill(255, 100, 100);
-      rect(startX + index * barWidth, y + h - barHeight, barWidth - 5, cancelledHeight);
       
+      rect(startX + index * barWidth, y + h - barHeight, barWidth - 5, cancelledHeight);
+      fill(100, 255, 100);
+      
+      rect(startX + index * barWidth, y + h - barHeight, barWidth - 5, divertedHeight);
       fill(0);
       textSize(12);
       textAlign(CENTER);
       text(carrier, startX + index * barWidth + barWidth / 2, y + h + 20);
       text(flights, startX + index * barWidth + barWidth / 2, y + h - barHeight - 5);
-      
-      if (cancelled > 0) 
+      if (cancelled > 0)
       {
         fill(255, 0, 0);
         text("(" + cancelled + " canc.)", startX + index * barWidth + barWidth / 2, y + h - barHeight - 20);
       }
-      int diverted = divertedCounts.getOrDefault(carrier, 0);
-      int divertedHeight = int(map(diverted, 0, maxFlights, 0, h - 100));
-
-      fill(100, 255, 100); 
-      rect(startX + index * barWidth, y + h - barHeight, barWidth - 5, divertedHeight);
-
-      if (diverted > 0) 
+      if (diverted > 0)
       {
         fill(0, 128, 0);
         text("(" + diverted + " div.)", startX + index * barWidth + barWidth / 2, y + h - barHeight - 35);
       }
-      
       index++;
     }
-    
     fill(0);
     textSize(12);
     textAlign(LEFT);
     text("Legend:", SCREENX - 150, 100);
-    
     fill(100, 100, 255);
+    
     rect(SCREENX - 150, 110, 15, 15);
     fill(0);
-    text("All Flights", SCREENX - 130, 123);
     
+    text("All Flights", SCREENX - 130, 123);
     fill(255, 100, 100);
+    
     rect(SCREENX - 150, 135, 15, 15);
     fill(0);
-    text("Cancelled", SCREENX - 130, 148);
     
+    text("Cancelled", SCREENX - 130, 148);
     fill(100, 255, 100);
+    
     rect(SCREENX - 150, 160, 15, 15);
     fill(0);
     text("Diverted", SCREENX - 130, 173);
   }
-}
-
-class mapScreen extends Screen {
-  PImage usaMap;
-  ButtonWidget backButton;
-  String[] states;
-  float[][] coords;
-
-  mapScreen() {
-    usaMap = loadImage("usaMap.png");
-    backButton = new ButtonWidget(50, 10, 100, 30, "Back");
-
-    states = new String[]{
-      "WA", "OR", "CA", "NV", "ID", "MT", "WY", "UT", "AZ", "CO", "NM", 
-      "ND", "SD", "NE", "KS", "OK", "TX", 
-      "MN", "IA", "MO", "AR", "LA", 
-      "WI", "IL", "MS", "AL", 
-      "MI", "IN", "OH", "KY", "TN", 
-      "FL", "GA", "SC", "NC", "VA", "WV", 
-      "PA", "NY", "NJ", "DE", "MD", "CT", "MA", "VT", "NH", "ME",
-      "AK", "HI"
-    };
-
-    coords = new float[][]  
-    {
-      {165, 95}, {133, 184}, {117, 380}, {191, 344}, {240, 226}, {368, 144}, {389, 258}, {286, 339}, {271, 458}, {405, 367}, {381, 460},
-      {524, 152}, {521, 228}, {537, 296}, {567, 387}, {566, 455}, {567, 571},
-      {632, 184}, {653, 283}, {673, 378}, {680, 480}, {682, 569},
-      {725, 212}, {738, 321}, {744, 538}, {809, 530},
-      {825, 238}, {807, 324}, {882, 320}, {861, 387}, {818, 448},
-      {947, 619}, {891, 518}, {940, 484}, {973, 437}, {976, 380}, {918, 363},
-      {973, 287}, {1013, 228}, {1043, 308}, {1027, 335}, {994, 328}, {1072, 255},  {1077, 231}, {1051, 179}, {1082, 196}, {1127, 139},
-      {90, 665}, {220, 690}
-    };
-  }
-
-  void display() {
-    background(255);
-    image(usaMap, 0, 0, SCREENX, SCREENY);
-    drawStateLabels();
-    backButton.display();
-  }
-
-  void drawStateLabels() {
-    textAlign(CENTER, CENTER);
-    textSize(12);
-    fill(255);
-    for (int i = 0; i < states.length; i++) {
-      text(states[i], coords[i][0], coords[i][1]);
-    }
-  }
-
-  void mousePressed() 
-  {
-    String clickedState = getClickedState(mouseX, mouseY);
-    if (clickedState != null) {
-      flightScreen.selectedState = clickedState;
-      currentScreen = flightScreen;
-    }
-
-      if ( mouseX > 50 && mouseX < 150 && mouseY > 10 && mouseY < 30)
-    {
-      currentScreen = flightScreen;
-      
-    }
-  }
-
-  String getClickedState(int mx, int my) 
-  {
-  for (int i = 0; i < coords.length; i++) {
-    float cx = coords[i][0];
-    float cy = coords[i][1];
-    float boxSize = 20; 
-
-    if (mx > cx - boxSize/2 && mx < cx + boxSize/2 &&
-        my > cy - boxSize/2 && my < cy + boxSize/2) {
-      return states[i];
-    }
-  }
-  return null;
-}
 }
