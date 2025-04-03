@@ -760,7 +760,7 @@ class mapScreen extends Screen {
 
   void drawStateLabels() {
     textAlign(CENTER, CENTER);
-    textSize(12);
+    textSize(20);
     fill(255);
     for (int i = 0; i < states.length; i++) {
       text(states[i], coords[i][0], coords[i][1]);
