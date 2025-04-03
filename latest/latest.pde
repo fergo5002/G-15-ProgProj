@@ -165,7 +165,7 @@ class FlightScreen extends Screen
     background(240);
     
     fill(0);
-    textSize(15);
+    textSize(25);
     textAlign(LEFT);
     text("Select Airline:", 10, 30); 
     text("Select Date:", 10, 70);   
