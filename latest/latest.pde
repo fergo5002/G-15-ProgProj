@@ -536,7 +536,7 @@ class DropdownWidget
       fill(255, 255, 255, 230);
       rect(x, y + h, w, min(totalHeight, maxDropdownHeight), 5);
 
-      // Display visible options
+      
       for (int i = 0; i < options.size(); i++) 
       {
         float optionY = y + h + i * h - scrollOffset;
@@ -760,7 +760,7 @@ class mapScreen extends Screen {
 
   void drawStateLabels() {
     textAlign(CENTER, CENTER);
-    textSize(12);
+    textSize(20);
     fill(255);
     for (int i = 0; i < states.length; i++) {
       text(states[i], coords[i][0], coords[i][1]);
