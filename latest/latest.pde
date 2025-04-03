@@ -314,7 +314,7 @@ class FlightScreen extends Screen
     fill(70, 70, 120);
     rect(50, 130, SCREENX-100, 30, 5);
     fill(255);
-    textSize(14);
+    textSize(18);
     textAlign(LEFT, CENTER);
     
     float dateCol = 60;         // Date
