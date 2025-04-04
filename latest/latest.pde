@@ -631,24 +631,38 @@ class FlightMapScreen extends Screen
     textSize(18);
     textAlign(CENTER, CENTER);
     text(flightInfo, SCREENX/2, 40);
-    String origin = flightRow.getString("ORIGIN");
-    String dest = flightRow.getString("DEST");
-    PVector originPos = getAirportScreenPosition(origin);
-    PVector destPos = getAirportScreenPosition(dest);
-    fill(255, 0, 0);
-    noStroke();
-    ellipse(originPos.x, originPos.y, 10, 10);
-    ellipse(destPos.x, destPos.y, 10, 10);
-    fill(255);
-    textSize(14);
-    textAlign(CENTER, CENTER);
-    text(origin, originPos.x, originPos.y - 15);
-    text(dest, destPos.x, destPos.y - 15);
-    stroke(0, 0, 255);
-    strokeWeight(3);
-    line(originPos.x, originPos.y, destPos.x, destPos.y);
+int cancelled = flightRow.getInt("CANCELLED");
+
+String origin = flightRow.getString("ORIGIN");
+String dest = flightRow.getString("DEST");
+PVector originPos = getAirportScreenPosition(origin);
+PVector destPos = getAirportScreenPosition(dest);
+
+fill(255, 0, 0);
+noStroke();
+ellipse(originPos.x, originPos.y, 10, 10);
+fill(255);
+textSize(14);
+textAlign(CENTER, CENTER);
+text(origin, originPos.x, originPos.y - 15);
+
+if (cancelled == 1) {
+  fill(200, 0, 0);
+  textSize(20);
+  textAlign(CENTER, CENTER);
+  text("Flight did not leave the terminal (CANCELLED)", SCREENX/2, SCREENY/2);
+} else {
+  // draw destination dot and path only if not cancelled
+  fill(255, 0, 0);
+  ellipse(destPos.x, destPos.y, 10, 10);
+  fill(255);
+  textSize(14);
+  text(dest, destPos.x, destPos.y - 15);
+  stroke(0, 0, 255);
+  strokeWeight(3);
+  line(originPos.x, originPos.y, destPos.x, destPos.y);
+}
   }
-  
   void mousePressed() 
   {
     if (backButton.isClicked(mouseX, mouseY))
