@@ -1,17 +1,10 @@
 Table table;
-
 BarChartWidget barChart;
-
 PImage plane;
-
 PImage usaMap;
-
 Screen currentScreen;
-
 HomeScreen homeScreen;
-
 FlightScreen flightScreen;
-
 ChartScreen chartScreen;
 
 mapScreen mapScreen;
