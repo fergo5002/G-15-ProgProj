@@ -12,6 +12,8 @@ int SCREENX = 1200;
 int SCREENY = 780;
 PFont sitkaFont;
 
+
+
 void settings() 
 {
   size(SCREENX, SCREENY);
@@ -582,7 +584,7 @@ class FlightMapScreen extends Screen
     airportCoords.put("LGA", new float[]{40.7769f, -73.8740f});
     airportCoords.put("MCI", new float[]{39.2976f, -94.7139f});
     airportCoords.put("MCO", new float[]{28.4312f, -81.3081f});
-    airportCoords.put("MIA", new float[]{25.7959f, -80.2870f});
+    airportCoords.put("MIA", new float[]{27.0f, -76.9f});
     airportCoords.put("MKE", new float[]{42.9470f, -87.8966f});
     airportCoords.put("MSP", new float[]{44.8848f, -93.2223f});
     airportCoords.put("MSY", new float[]{29.9934f, -90.2580f});
@@ -621,13 +623,16 @@ class FlightMapScreen extends Screen
     text(flightInfo, SCREENX/2, 40);
     String origin = flightRow.getString("ORIGIN");
     String dest = flightRow.getString("DEST");
+
     PVector originPos = getAirportScreenPosition(origin);
     PVector destPos = getAirportScreenPosition(dest);
+
     fill(255, 0, 0);
     noStroke();
     ellipse(originPos.x, originPos.y, 10, 10);
     ellipse(destPos.x, destPos.y, 10, 10);
-    fill(255);
+
+    fill(0);
     textSize(14);
     textAlign(CENTER, CENTER);
     text(origin, originPos.x, originPos.y - 15);
