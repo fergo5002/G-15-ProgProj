@@ -247,8 +247,8 @@ class FlightScreen extends Screen
     fill(100);
     textSize(18);
     textAlign(RIGHT);
-    text("Showing " + (showCancelled ? "all flights" : "only non-cancelled flights"), cancelFilterButton.x - 10, cancelFilterButton.y + 20);
-  
+    text("Showing all ", cancelFilterButton.x - 10, cancelFilterButton.y + 15);
+    text(showCancelled ? " flights" : "non-cancelled flights", cancelFilterButton.x - 10, cancelFilterButton.y + 32);  
     
   }
   
