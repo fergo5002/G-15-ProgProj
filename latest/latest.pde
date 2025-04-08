@@ -159,6 +159,10 @@ class FlightScreen extends Screen
   {
     textFont(sitkaFont);
     background(240);
+
+    stroke(0);
+    strokeWeight(1);
+    
     fill(0);
     textSize(15);
     textAlign(LEFT);
