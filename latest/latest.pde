@@ -692,6 +692,15 @@ class FlightMapScreen extends Screen
     textSize(18);
     textAlign(CENTER, CENTER);
     text(flightInfo, SCREENX/2, 40);
+    int cancelled  = flightRow.getInt("CANCELLED");
+
+    if ( cancelled == 1) {
+    fill (200,0,0); 
+    textSize(22); 
+    text("Flight did not leave the terminal (CANCELLED)", SCREENX / 2, SCREENY / 2);
+    return;
+  }
+
     String origin = flightRow.getString("ORIGIN");
     String dest = flightRow.getString("DEST");
 
