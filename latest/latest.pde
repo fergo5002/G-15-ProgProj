@@ -8,11 +8,14 @@ HomeScreen homeScreen;  // the welcome screen with the cool plane
 FlightScreen flightScreen;  // where all the magic happens lol
 ChartScreen chartScreen;  // shows them graphs
 mapScreen mapScreen;  // screen for selecting states
+loadingScreen loadingScreen;
 boolean showCancelled = true;  // this bad boi controls if we show cancelled flights or not
 int SCREENX = 1200;  // screen dimensions - dont mess with these unless u want everything to break!!
 int SCREENY = 780;
 PFont sitkaFont;  // our pretty font
 PImage toyPlane;  // toy plane image for animations
+int loadingStartTime;
+boolean dataLoaded = false;
 
 void settings() 
 {
@@ -24,6 +27,26 @@ void settings()
   usaMap.resize(SCREENX, SCREENY);
   toyPlane = loadImage("toyPlane.png");
   toyPlane.resize(51, 51);
+}
+
+void setup() 
+{
+  loadingStartTime = millis();
+  currentScreen = new loadingScreen();
+  
+  thread("loadingDataIntoBackground");
+}
+
+void loadingDataIntoBackground(){
+  sitkaFont = loadFont("Consolas.vlw");
+  table = loadTable("flights.csv", "header");
+  barChart = new BarChartWidget(100, 100, SCREENX - 200, SCREENY - 300, table);
+  homeScreen = new HomeScreen();
+  flightScreen = new FlightScreen();
+  chartScreen = new ChartScreen();
+  mapScreen = new mapScreen();
+ 
+  dataLoaded = true;
 }
 
 void setup() 
@@ -74,6 +97,73 @@ abstract class Screen
   
   void mouseWheel(MouseEvent event) 
   {
+  }
+}
+
+class loadingScreen extends Screen{
+  float progress = 0;
+  String status = "";
+  
+  void display() {
+    background(20, 20, 250);
+    
+    // Calculate progress (either time-based or completion-based)
+    float timeProgress = min(1.0, (millis() - loadingStartTime) / 5000.0);
+    progress = dataLoaded ? 1.0 : timeProgress * 0.9; // Cap at 90% until data loads
+    
+    // Draw loading text
+    fill(255);
+    textSize(40);
+    textAlign(CENTER, CENTER);
+    text("Loading Flight Data...", width/2, height/2 - 50);
+    
+    // Draw percentage text
+    textSize(24);
+    text(nf(progress * 100, 1, 1) + "%", width/2, height/2 + 80);
+    
+    // Draw progress bar
+    drawProgressBar(width/2 - 150, height/2, 300, 20, progress);
+    
+    // Transition when data is loaded and minimum time has passed
+    if (dataLoaded) {
+      status = "Loading complete!";
+    } else if (millis() - loadingStartTime > 6000) { // Timeout after 6 seconds
+      status = "Taking longer than expected...";
+    }
+    
+    fill(255);
+    textSize(40);
+    textAlign(CENTER, CENTER);
+    text(status, width/2, height/2 - 80);
+    
+    // Draw percentage text
+    textSize(24);
+    text(nf(progress * 100, 1, 1) + "%", width/2, height/2 + 80);
+    
+    // Draw progress bar
+    drawProgressBar(width/2 - 150, height/2, 300, 20, progress);
+    
+    // Transition when data is loaded and minimum time has passed
+    if (dataLoaded && millis() - loadingStartTime > 2000) {
+      currentScreen = homeScreen;
+    }
+  }
+  
+  void drawProgressBar(float x, float y, float w, float h, float p) {
+    // Background
+    noStroke();
+    fill(100);
+    rect(x, y, w, h, 10);
+    
+    // Foreground
+    fill(100, 200, 255);
+    rect(x, y, w * p, h, 10);
+    
+    // Outline
+    noFill();
+    stroke(255);
+    strokeWeight(2);
+    rect(x, y, w, h, 10);
   }
 }
 
