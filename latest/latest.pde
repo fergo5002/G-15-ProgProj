@@ -1317,7 +1317,7 @@ class LineChartScreen extends Screen {
 
   void drawLineChart() {
   int chartX = 100;
-  int chartY = 120;
+  int chartY = 220;
   int chartW = SCREENX - 200;
   int chartH = 300;
 
