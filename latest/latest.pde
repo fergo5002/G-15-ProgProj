@@ -1,19 +1,18 @@
-Table table;
-BarChartWidget barChart;
-PImage plane;
-PImage usaMap;
-Screen currentScreen;
-HomeScreen homeScreen;
-FlightScreen flightScreen;
-ChartScreen chartScreen;
-mapScreen mapScreen;
-boolean showCancelled = true;
-int SCREENX = 1200;
+// yo these are the main variables for our program
+Table table;  // stores all them flight data
+BarChartWidget barChart;  // makes those cool bar graphs
+PImage plane;  // our sexy background image!
+PImage usaMap;  // map of the USA for the flight map screen
+Screen currentScreen;  // keeps track of which screen were on
+HomeScreen homeScreen;  // the welcome screen with the cool plane
+FlightScreen flightScreen;  // where all the magic happens lol
+ChartScreen chartScreen;  // shows them graphs
+mapScreen mapScreen;  // screen for selecting states
+boolean showCancelled = true;  // this bad boi controls if we show cancelled flights or not
+int SCREENX = 1200;  // screen dimensions - dont mess with these unless u want everything to break!!
 int SCREENY = 780;
-PFont sitkaFont;
-PImage toyPlane;
-
-
+PFont sitkaFont;  // our pretty font
+PImage toyPlane;  // toy plane image for animations
 
 void settings() 
 {
@@ -37,7 +36,6 @@ void setup()
   chartScreen = new ChartScreen();
   mapScreen = new mapScreen();
   currentScreen = homeScreen;
-  
 }
 
 void draw() 
@@ -79,12 +77,15 @@ abstract class Screen
   }
 }
 
-class HomeScreen extends Screen 
+class HomeScreen extends Screen
 {
-  ButtonWidget startButton;
+  // this is were the magic starts - our home screen stuff
+  ButtonWidget startButton;  // the button that gets u into the action
   
+  // constructor - sets up the welcome page
   HomeScreen() 
   {
+    // slap that button right in the middle!
     startButton = new ButtonWidget(SCREENX/2 - 100, SCREENY/2 + 50, 200, 50, "Start FlyRadar");
   }
   
@@ -118,8 +119,9 @@ class HomeScreen extends Screen
 
 class FlightScreen extends Screen 
 {
-  DropdownWidget dropdown;
-  DropdownWidget dateDropdown;
+  // omg this is the most complicated screen ever lmao
+  DropdownWidget dropdown;  // for picking airlines n stuff
+  DropdownWidget dateDropdown;  // lets u choose which day ur looking at
   ButtonWidget chartButton;
   ButtonWidget cancelFilterButton;
   ButtonWidget mapButton;
@@ -227,6 +229,8 @@ class FlightScreen extends Screen
   
   void displayFlights() 
   {
+    // this function is a beast - displays all the flight info
+    // honestly im not sure how it works anymore but it does LOL
     drawColumnHeaders();
     int yOffset = 160 - (int)scrollOffset;
     int maxY = SCREENY - 20;
@@ -257,6 +261,8 @@ class FlightScreen extends Screen
     drawFooter();
   }
   
+  // this function figures out which flights to show based on filters
+  // its kinda messy but it works dont touch it!!
   boolean passesFilters(TableRow row) 
   {
     String carrier = row.getString("MKT_CARRIER");
@@ -551,6 +557,9 @@ class ChartScreen extends Screen
 
 class FlightMapScreen extends Screen 
 {
+  // this shows a cool map with planes flying around!
+  // took me way too long to get the plane animation working properly smh
+  
   TableRow flightRow;
   ButtonWidget backButton;
   float minLon = -125.0;
@@ -563,7 +572,7 @@ class FlightMapScreen extends Screen
   PVector originPos;
   PVector destPos;
   float animationProgress = 0.0;
-  float animationSpeed = 0.003; 
+  float animationSpeed = 0.003;  // make it go zoom zoom
   boolean animationComplete = false;
   
   FlightMapScreen(TableRow row) 
@@ -972,9 +981,12 @@ class DropdownWidget extends Screen
 
 class BarChartWidget extends Screen 
 {
+  // this makes those fancy graphs everyone loves
+  // tbh the math here is pretty confusing but it works
+  
   int x, y, w, h;
-  HashMap<String, Integer> flightCounts;
-  HashMap<String, Integer> cancelledCounts;
+  HashMap<String, Integer> flightCounts;  // counts how many flights each airline has
+  HashMap<String, Integer> cancelledCounts;  // keeps track of the fails lol
   HashMap<String, Integer> divertedCounts;
   int maxFlights;
   
@@ -1014,6 +1026,8 @@ class BarChartWidget extends Screen
   
   void display() 
   {
+    // warning: this function is a mess but it makes pretty charts
+    // just dont touch anything and it'll be fine
     fill(240);
     rect(0, 0, SCREENX, SCREENY);
     fill(0, 0, 255);
