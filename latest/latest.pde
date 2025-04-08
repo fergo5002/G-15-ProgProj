@@ -658,9 +658,11 @@ class ChartScreen extends Screen
   ButtonWidget backButton;
   
   ChartScreen() 
-  {
-    backButton = new ButtonWidget(50, 10, 100, 30, "Back");
-  }
+    {
+      backButton = new ButtonWidget(50, 10, 100, 30, "Back");
+      barChart.animationProgress = 0;
+      barChart.animating = true;  
+    }
   
   void display() 
   {
@@ -1115,7 +1117,8 @@ class BarChartWidget extends Screen
 {
   // this makes those fancy graphs everyone loves
   // tbh the math here is pretty confusing but it works
-  
+  float animationProgress = 0;
+  boolean animating = true;
   int x, y, w, h;
   HashMap<String, Integer> flightCounts;  // counts how many flights each airline has
   HashMap<String, Integer> cancelledCounts;  // keeps track of the fails lol
@@ -1161,6 +1164,15 @@ class BarChartWidget extends Screen
     // warning: this function is a mess but it makes pretty charts
     // just dont touch anything and it'll be fine
     fill(240);
+    if (animating) 
+    {
+      animationProgress += 0.02;  
+        if (animationProgress >= 1) 
+        {
+         animationProgress = 1;
+          animating = false;
+        }
+    }
     rect(0, 0, SCREENX, SCREENY);
     fill(0, 0, 255);
     textSize(40);
@@ -1174,9 +1186,15 @@ class BarChartWidget extends Screen
       int flights = flightCounts.get(carrier);
       int cancelled = cancelledCounts.getOrDefault(carrier, 0);
       int diverted = divertedCounts.getOrDefault(carrier, 0);
-      int barHeight = int(map(flights, 0, maxFlights, 0, h - 100));
-      int cancelledHeight = int(map(cancelled, 0, maxFlights, 0, h - 100));
-      int divertedHeight = int(map(diverted, 0, maxFlights, 0, h - 100));
+      int fullBarHeight = int(map(flights, 0, maxFlights, 0, h - 100));
+      int barHeight = int(fullBarHeight * animationProgress);
+
+      int fullCancelled = int(map(cancelled, 0, maxFlights, 0, h - 100));
+      int cancelledHeight = int(fullCancelled * animationProgress);
+
+      int fullDiverted = int(map(diverted, 0, maxFlights, 0, h - 100));
+      int divertedHeight = int(fullDiverted * animationProgress);      
+      
       
       fill(100, 100, 255);
       rect(startX + index * barWidth, y + h - barHeight, barWidth - 5, barHeight);
