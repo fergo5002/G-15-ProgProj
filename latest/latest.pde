@@ -387,6 +387,19 @@ class FlightScreen extends Screen
     int viewButtonH = 20;
     int viewButtonX = int(statusCol + 100);
     int viewButtonY = y + (rowHeight - viewButtonH) / 2;
+    // Check if mouse is hovered over button
+     boolean isHovered = mouseX >= viewButtonX && mouseX <= viewButtonX + viewButtonW &&
+                    mouseY >= viewButtonY && mouseY <= viewButtonY + viewButtonH;
+ // if so add effect to show.
+    if (isHovered) {
+  fill(70, 180, 70); 
+  stroke(0, 200, 0);
+  strokeWeight(2);
+} else {
+  fill(50, 150, 50);
+  noStroke();
+}
+
     fill(50, 150, 50);
     rect(viewButtonX, viewButtonY, viewButtonW, viewButtonH, 5);
     fill(255);
