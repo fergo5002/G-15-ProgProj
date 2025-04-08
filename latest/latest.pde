@@ -1,28 +1,18 @@
-Table table;
-
-BarChartWidget barChart;
-
-PImage plane;
-
-PImage usaMap;
-
-Screen currentScreen;
-
-HomeScreen homeScreen;
-
-FlightScreen flightScreen;
-
-ChartScreen chartScreen;
-
-mapScreen mapScreen;
-
-boolean showCancelled = true;
-
-int SCREENX = 1200;
-
+// these are the main variables for our program
+Table table;  // stores all them flight data
+BarChartWidget barChart;  // makes those cool bar graphs
+PImage plane;  // our sexy background image!
+PImage usaMap;  // map of the USA for the flight map screen
+Screen currentScreen;  // keeps track of which screen were on
+HomeScreen homeScreen;  // the welcome screen with the cool plane
+FlightScreen flightScreen;  // where all the magic happens lol
+ChartScreen chartScreen;  // shows them graphs
+mapScreen mapScreen;  // screen for selecting states
+boolean showCancelled = true;  // this bad boi controls if we show cancelled flights or not
+int SCREENX = 1200;  // screen dimensions - dont mess with these unless u want everything to break!!
 int SCREENY = 780;
-
-PFont sitkaFont;
+PFont sitkaFont;  // our pretty font
+PImage toyPlane;  // toy plane image for animations
 
 void settings() 
 {
@@ -32,6 +22,8 @@ void settings()
   size(SCREENX, SCREENY);
   usaMap = loadImage("usaMap.png");
   usaMap.resize(SCREENX, SCREENY);
+  toyPlane = loadImage("toyPlane.png");
+  toyPlane.resize(51, 51);
 }
 
 void setup() 
@@ -85,12 +77,15 @@ abstract class Screen
   }
 }
 
-class HomeScreen extends Screen 
+class HomeScreen extends Screen
 {
-  ButtonWidget startButton;
+  // this is were the magic starts - our home screen stuff
+  ButtonWidget startButton;  // the button that gets u into the action
   
+  // constructor - sets up the welcome page
   HomeScreen() 
   {
+    // slap that button right in the middle!
     startButton = new ButtonWidget(SCREENX/2 - 100, SCREENY/2 + 50, 200, 50, "Start FlyRadar");
   }
   
@@ -124,8 +119,9 @@ class HomeScreen extends Screen
 
 class FlightScreen extends Screen 
 {
-  DropdownWidget dropdown;
-  DropdownWidget dateDropdown;
+  // omg this is the most complicated screen ever lmao
+  DropdownWidget dropdown;  // for picking airlines n stuff
+  DropdownWidget dateDropdown;  // lets u choose which day ur looking at
   ButtonWidget chartButton;
   ButtonWidget cancelFilterButton;
   ButtonWidget mapButton;
@@ -136,6 +132,8 @@ class FlightScreen extends Screen
   float scrollVelocity = 0;
   float scrollFriction = 0.5;
   float scrollSensitivity = 15;
+  boolean showDivertedOnly = false;
+  boolean showCancelledOnly = false;
   
   FlightScreen() 
   {
@@ -163,17 +161,42 @@ class FlightScreen extends Screen
     cancelFilterButton = new ButtonWidget(750, 10, 200, 30, "Hide Cancelled");
     mapButton = new ButtonWidget(970, 50, 200, 30, "View Map");
     clearStateButton = new ButtonWidget(750, 50, 200, 30, "Clear State Filter");
+
+  
+
   }
+  
+  
+  void drawCheckbox(int x, int y, boolean checked)
+  {
+  fill(255);
+  stroke(0);
+  rect(x, y, 20, 20);
+  if (checked) {
+    line(x + 4, y + 10, x + 9, y + 15);
+    line(x + 9, y + 15, x + 16, y + 5);
+  }
+}
   
   void display() 
   {
     textFont(sitkaFont);
     background(240);
+
+    stroke(0);
+    strokeWeight(1);
+    
     fill(0);
     textSize(15);
     textAlign(LEFT);
     text("Select Airline:", 10, 30);
     text("Select Date:", 10, 70);
+    fill(0);
+    text("Show Only Cancelled:", 330, 30);
+    drawCheckbox(500, 18, showCancelledOnly);
+    fill(0);
+    text("Show Only Diverted:", 330, 70);
+    drawCheckbox(500, 58, showDivertedOnly);
     targetScrollOffset += scrollVelocity;
     scrollVelocity *= scrollFriction;
     if (abs(scrollVelocity) < 0.1)
@@ -225,10 +248,14 @@ class FlightScreen extends Screen
     textSize(18);
     textAlign(RIGHT);
     text("Showing " + (showCancelled ? "all flights" : "only non-cancelled flights"), cancelFilterButton.x - 10, cancelFilterButton.y + 20);
+  
+    
   }
   
   void displayFlights() 
   {
+    // this function is a beast - displays all the flight info
+    // honestly im not sure how it works anymore but it does LOL
     drawColumnHeaders();
     int yOffset = 160 - (int)scrollOffset;
     int maxY = SCREENY - 20;
@@ -259,17 +286,25 @@ class FlightScreen extends Screen
     drawFooter();
   }
   
+  // this function figures out which flights to show based on filters
+  // its kinda messy but it works dont touch it!!
   boolean passesFilters(TableRow row) 
-  {
-    String carrier = row.getString("MKT_CARRIER");
-    int cancelled = row.getInt("CANCELLED");
-    String date = row.getString("FL_DATE").split(" ")[0];
-    String originState = row.getString("ORIGIN_STATE_ABR");
-    return (dropdown.selected.equals("ALL") || carrier.equals(dropdown.selected)) &&
-           (dateDropdown.selected.equals("ALL") || date.equals(dateDropdown.selected)) &&
-           (showCancelled || cancelled == 0) &&
-           (selectedState.equals("") || originState.equals(selectedState));
-  }
+{
+  String carrier = row.getString("MKT_CARRIER");
+  int cancelled = row.getInt("CANCELLED");
+  int diverted = row.getInt("DIVERTED");
+  String date = row.getString("FL_DATE").split(" ")[0];
+  String originState = row.getString("ORIGIN_STATE_ABR");
+
+  if (showCancelledOnly && cancelled != 1) return false;
+  if (showDivertedOnly && diverted != 1) return false;
+
+  return (dropdown.selected.equals("ALL") || carrier.equals(dropdown.selected)) &&
+         (dateDropdown.selected.equals("ALL") || date.equals(dateDropdown.selected)) &&
+         (showCancelled || cancelled == 0) &&
+         (selectedState.equals("") || originState.equals(selectedState));
+}
+
   
   int getFilteredCount() 
   {
@@ -362,6 +397,7 @@ class FlightScreen extends Screen
   
   void drawFooter() 
   {
+    
     fill(100);
     textSize(20);
     textAlign(RIGHT);
@@ -392,6 +428,17 @@ class FlightScreen extends Screen
   
   void mousePressed() 
   {
+    if (mouseX >= 500 && mouseX <= 520) {
+  if (mouseY >= 18 && mouseY <= 38) {
+    showCancelledOnly = !showCancelledOnly;
+    if (showCancelledOnly) showDivertedOnly = false; // turn off other
+    return;
+  } else if (mouseY >= 58 && mouseY <= 78) {
+    showDivertedOnly = !showDivertedOnly;
+    if (showDivertedOnly) showCancelledOnly = false; // turn off other
+    return;
+  }
+}
     dropdown.checkClick(mouseX, mouseY);
     dateDropdown.checkClick(mouseX, mouseY);
     if (chartButton.isClicked(mouseX, mouseY))
@@ -553,6 +600,9 @@ class ChartScreen extends Screen
 
 class FlightMapScreen extends Screen 
 {
+  // this shows a cool map with planes flying around!
+  // took me way too long to get the plane animation working properly smh
+  
   TableRow flightRow;
   ButtonWidget backButton;
   float minLon = -125.0;
@@ -561,6 +611,12 @@ class FlightMapScreen extends Screen
   float maxLat = 50.0;
   HashMap<String, float[]> airportCoords = new HashMap<String, float[]>();
   HashMap<String, PVector> airportOffsets = new HashMap<String, PVector>();
+  
+  PVector originPos;
+  PVector destPos;
+  float animationProgress = 0.0;
+  float animationSpeed = 0.003;  // make it go zoom zoom
+  boolean animationComplete = false;
   
   FlightMapScreen(TableRow row) 
   {
@@ -594,7 +650,7 @@ class FlightMapScreen extends Screen
     airportCoords.put("LGA", new float[]{40.7769f, -73.8740f});
     airportCoords.put("MCI", new float[]{39.2976f, -94.7139f});
     airportCoords.put("MCO", new float[]{28.4312f, -81.3081f});
-    airportCoords.put("MIA", new float[]{25.7959f, -80.2870f});
+    airportCoords.put("MIA", new float[]{27.0f, -76.9f});
     airportCoords.put("MKE", new float[]{42.9470f, -87.8966f});
     airportCoords.put("MSP", new float[]{44.8848f, -93.2223f});
     airportCoords.put("MSY", new float[]{29.9934f, -90.2580f});
@@ -608,9 +664,9 @@ class FlightMapScreen extends Screen
     airportCoords.put("PIT", new float[]{40.4914f, -80.2329f});
     airportCoords.put("RDU", new float[]{35.8776f, -78.7870f});
     airportCoords.put("RSW", new float[]{26.5362f, -81.7552f});
-    airportCoords.put("SAN", new float[]{32.7338f, -117.1933f});
+    airportCoords.put("SAN", new float[]{33.7338f, -118.1933f});
     airportCoords.put("SAT", new float[]{29.4246f, -98.4861f});
-    airportCoords.put("SEA", new float[]{47.4502f, -122.3088f});
+    airportCoords.put("SEA", new float[]{47f, -118.5f});
     airportCoords.put("SFO", new float[]{37.6213f, -122.3790f});
     airportCoords.put("SJC", new float[]{37.3639f, -121.9289f});
     airportCoords.put("SJU", new float[]{18.4394f, -66.0018f});
@@ -619,49 +675,55 @@ class FlightMapScreen extends Screen
     airportCoords.put("STL", new float[]{38.7487f, -90.3700f});
     airportCoords.put("TPA", new float[]{27.9755f, -82.5332f});
     airportCoords.put("TUL", new float[]{36.1984f, -95.8881f});
+    
+    String origin = flightRow.getString("ORIGIN");
+    String dest = flightRow.getString("DEST");
+    originPos = getAirportScreenPosition(origin);
+    destPos = getAirportScreenPosition(dest);
   }
   
   void display() 
   {
-    background(255);
-    image(usaMap, 0, 0, SCREENX, SCREENY);
-    backButton.display();
-    String flightInfo = flightRow.getString("FL_DATE") + " | " + flightRow.getString("MKT_CARRIER") + flightRow.getInt("MKT_CARRIER_FL_NUM") + " | " + flightRow.getString("ORIGIN") + " → " + flightRow.getString("DEST");
-    fill(0);
-    textSize(18);
-    textAlign(CENTER, CENTER);
-    text(flightInfo, SCREENX/2, 40);
-int cancelled = flightRow.getInt("CANCELLED");
-
-String origin = flightRow.getString("ORIGIN");
-String dest = flightRow.getString("DEST");
-PVector originPos = getAirportScreenPosition(origin);
-PVector destPos = getAirportScreenPosition(dest);
-
-fill(255, 0, 0);
-noStroke();
-ellipse(originPos.x, originPos.y, 10, 10);
-fill(255);
-textSize(14);
-textAlign(CENTER, CENTER);
-text(origin, originPos.x, originPos.y - 15);
-
-if (cancelled == 1) {
-  fill(200, 0, 0);
-  textSize(20);
+   background(255);
+  image(usaMap, 0, 0, SCREENX, SCREENY);
+  backButton.display();
+  
+  String flightInfo = flightRow.getString("FL_DATE") + " | " + flightRow.getString("MKT_CARRIER") +
+                      flightRow.getInt("MKT_CARRIER_FL_NUM") + " | " + flightRow.getString("ORIGIN") + " → " +
+                      flightRow.getString("DEST");
+  fill(0);
+  textSize(18);
   textAlign(CENTER, CENTER);
-  text("Flight did not leave the terminal (CANCELLED)", SCREENX/2, SCREENY/2);
-} else {
-  // draw destination dot and path only if not cancelled
+  text(flightInfo, SCREENX/2, 40);
+
+  int cancelled = flightRow.getInt("CANCELLED");
+  if (cancelled == 1) {
+    // If flight was cancelled, show a message instead of drawing the route
+    fill(200, 0, 0);
+    textSize(20);
+    text("Flight did not leave the terminal (CANCELLED)", SCREENX/2, SCREENY/2);
+    return;
+  }
+
+  String origin = flightRow.getString("ORIGIN");
+  String dest = flightRow.getString("DEST");
+  PVector originPos = getAirportScreenPosition(origin);
+  PVector destPos = getAirportScreenPosition(dest);
+
   fill(255, 0, 0);
+  noStroke();
+  ellipse(originPos.x, originPos.y, 10, 10);
   ellipse(destPos.x, destPos.y, 10, 10);
+
   fill(255);
   textSize(14);
+  textAlign(CENTER, CENTER);
+  text(origin, originPos.x, originPos.y - 15);
   text(dest, destPos.x, destPos.y - 15);
+
   stroke(0, 0, 255);
   strokeWeight(3);
   line(originPos.x, originPos.y, destPos.x, destPos.y);
-}
   }
   void mousePressed() 
   {
@@ -690,6 +752,16 @@ if (cancelled == 1) {
     }
     return new PVector(x, y);
   }
+  
+  void restartAnimation() {
+    animationProgress = 0.0;
+    animationComplete = false;
+  }
+  
+  void setAnimationSpeed(float speed) {
+    animationSpeed = speed;
+  }
+  
 }
 
 class mapScreen extends Screen 
@@ -940,9 +1012,12 @@ class DropdownWidget extends Screen
 
 class BarChartWidget extends Screen 
 {
+  // this makes those fancy graphs everyone loves
+  // tbh the math here is pretty confusing but it works
+  
   int x, y, w, h;
-  HashMap<String, Integer> flightCounts;
-  HashMap<String, Integer> cancelledCounts;
+  HashMap<String, Integer> flightCounts;  // counts how many flights each airline has
+  HashMap<String, Integer> cancelledCounts;  // keeps track of the fails lol
   HashMap<String, Integer> divertedCounts;
   int maxFlights;
   
@@ -982,6 +1057,8 @@ class BarChartWidget extends Screen
   
   void display() 
   {
+    // warning: this function is a mess but it makes pretty charts
+    // just dont touch anything and it'll be fine
     fill(240);
     rect(0, 0, SCREENX, SCREENY);
     fill(0, 0, 255);
