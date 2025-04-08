@@ -598,9 +598,9 @@ class FlightMapScreen extends Screen
     airportCoords.put("PIT", new float[]{40.4914f, -80.2329f});
     airportCoords.put("RDU", new float[]{35.8776f, -78.7870f});
     airportCoords.put("RSW", new float[]{26.5362f, -81.7552f});
-    airportCoords.put("SAN", new float[]{32.7338f, -117.1933f});
+    airportCoords.put("SAN", new float[]{33.7338f, -118.1933f});
     airportCoords.put("SAT", new float[]{29.4246f, -98.4861f});
-    airportCoords.put("SEA", new float[]{47.4502f, -122.3088f});
+    airportCoords.put("SEA", new float[]{47f, -118.5f});
     airportCoords.put("SFO", new float[]{37.6213f, -122.3790f});
     airportCoords.put("SJC", new float[]{37.3639f, -121.9289f});
     airportCoords.put("SJU", new float[]{18.4394f, -66.0018f});
