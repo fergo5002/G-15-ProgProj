@@ -1,4 +1,4 @@
-// yo these are the main variables for our program
+// these are the main variables for our program
 Table table;  // stores all them flight data
 BarChartWidget barChart;  // makes those cool bar graphs
 PImage plane;  // our sexy background image!
@@ -132,6 +132,8 @@ class FlightScreen extends Screen
   float scrollVelocity = 0;
   float scrollFriction = 0.5;
   float scrollSensitivity = 15;
+  boolean showDivertedOnly = false;
+  boolean showCancelledOnly = false;
   
   FlightScreen() 
   {
@@ -159,7 +161,22 @@ class FlightScreen extends Screen
     cancelFilterButton = new ButtonWidget(750, 10, 200, 30, "Hide Cancelled");
     mapButton = new ButtonWidget(970, 50, 200, 30, "View Map");
     clearStateButton = new ButtonWidget(750, 50, 200, 30, "Clear State Filter");
+
+  
+
   }
+  
+  
+  void drawCheckbox(int x, int y, boolean checked)
+  {
+  fill(255);
+  stroke(0);
+  rect(x, y, 20, 20);
+  if (checked) {
+    line(x + 4, y + 10, x + 9, y + 15);
+    line(x + 9, y + 15, x + 16, y + 5);
+  }
+}
   
   void display() 
   {
@@ -174,6 +191,12 @@ class FlightScreen extends Screen
     textAlign(LEFT);
     text("Select Airline:", 10, 30);
     text("Select Date:", 10, 70);
+    fill(0);
+    text("Show Only Cancelled:", 330, 30);
+    drawCheckbox(500, 18, showCancelledOnly);
+    fill(0);
+    text("Show Only Diverted:", 330, 70);
+    drawCheckbox(500, 58, showDivertedOnly);
     targetScrollOffset += scrollVelocity;
     scrollVelocity *= scrollFriction;
     if (abs(scrollVelocity) < 0.1)
@@ -225,6 +248,8 @@ class FlightScreen extends Screen
     textSize(18);
     textAlign(RIGHT);
     text("Showing " + (showCancelled ? "all flights" : "only non-cancelled flights"), cancelFilterButton.x - 10, cancelFilterButton.y + 20);
+  
+    
   }
   
   void displayFlights() 
@@ -264,16 +289,22 @@ class FlightScreen extends Screen
   // this function figures out which flights to show based on filters
   // its kinda messy but it works dont touch it!!
   boolean passesFilters(TableRow row) 
-  {
-    String carrier = row.getString("MKT_CARRIER");
-    int cancelled = row.getInt("CANCELLED");
-    String date = row.getString("FL_DATE").split(" ")[0];
-    String originState = row.getString("ORIGIN_STATE_ABR");
-    return (dropdown.selected.equals("ALL") || carrier.equals(dropdown.selected)) &&
-           (dateDropdown.selected.equals("ALL") || date.equals(dateDropdown.selected)) &&
-           (showCancelled || cancelled == 0) &&
-           (selectedState.equals("") || originState.equals(selectedState));
-  }
+{
+  String carrier = row.getString("MKT_CARRIER");
+  int cancelled = row.getInt("CANCELLED");
+  int diverted = row.getInt("DIVERTED");
+  String date = row.getString("FL_DATE").split(" ")[0];
+  String originState = row.getString("ORIGIN_STATE_ABR");
+
+  if (showCancelledOnly && cancelled != 1) return false;
+  if (showDivertedOnly && diverted != 1) return false;
+
+  return (dropdown.selected.equals("ALL") || carrier.equals(dropdown.selected)) &&
+         (dateDropdown.selected.equals("ALL") || date.equals(dateDropdown.selected)) &&
+         (showCancelled || cancelled == 0) &&
+         (selectedState.equals("") || originState.equals(selectedState));
+}
+
   
   int getFilteredCount() 
   {
@@ -366,6 +397,7 @@ class FlightScreen extends Screen
   
   void drawFooter() 
   {
+    
     fill(100);
     textSize(20);
     textAlign(RIGHT);
@@ -396,6 +428,17 @@ class FlightScreen extends Screen
   
   void mousePressed() 
   {
+    if (mouseX >= 500 && mouseX <= 520) {
+  if (mouseY >= 18 && mouseY <= 38) {
+    showCancelledOnly = !showCancelledOnly;
+    if (showCancelledOnly) showDivertedOnly = false; // turn off other
+    return;
+  } else if (mouseY >= 58 && mouseY <= 78) {
+    showDivertedOnly = !showDivertedOnly;
+    if (showDivertedOnly) showCancelledOnly = false; // turn off other
+    return;
+  }
+}
     dropdown.checkClick(mouseX, mouseY);
     dateDropdown.checkClick(mouseX, mouseY);
     if (chartButton.isClicked(mouseX, mouseY))
