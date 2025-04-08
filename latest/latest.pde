@@ -681,7 +681,7 @@ class ChartScreen extends Screen
     }
     if (nextChartButton.isClicked(mouseX, mouseY)) 
     {
-      currentScreen = new SecondChartScreen();
+      currentScreen = new LineChartScreen();
       return;
     }
   }
@@ -1316,52 +1316,71 @@ class LineChartScreen extends Screen {
   }
 
   void drawLineChart() {
-    int chartX = 100;
-    int chartY = 120;
-    int chartW = SCREENX - 200;
-    int chartH = 300;
+  int chartX = 100;
+  int chartY = 120;
+  int chartW = SCREENX - 200;
+  int chartH = 300;
 
-    ArrayList<String> sortedDates = new ArrayList<>(dailyFlights.keySet());
-    sortedDates.sort((a, b) -> a.compareTo(b));
+  ArrayList<String> sortedDates = new ArrayList<>(dailyFlights.keySet());
+  sortedDates.sort((a, b) -> a.compareTo(b));
 
-    stroke(0);
-    strokeWeight(1);
-    line(chartX, chartY, chartX, chartY + chartH); // y-axis
-    line(chartX, chartY + chartH, chartX + chartW, chartY + chartH); // x-axis
+  // Axis lines (no top or right)
+  stroke(0);
+  strokeWeight(1);
+  line(chartX, chartY, chartX, chartY + chartH); // y-axis
+  line(chartX, chartY + chartH, chartX + chartW, chartY + chartH); // x-axis
 
+  // Y-axis label
+  fill(0);
+  textSize(16);
+  textAlign(CENTER, CENTER);
+  pushMatrix();
+  translate(chartX - 50, chartY + chartH / 2);
+  rotate(-HALF_PI);
+  text("Number of Flights", 0, 0);
+  popMatrix();
+
+  // Y-axis numbers (ticks)
+  int ySteps = 5;
+  textSize(12);
+  textAlign(RIGHT, CENTER);
+  for (int i = 0; i <= ySteps; i++) {
+    int yVal = int(map(i, 0, ySteps, 0, maxFlights));
+    float yPos = chartY + chartH - map(yVal, 0, maxFlights, 0, chartH);
+    stroke(200);
+    line(chartX - 5, yPos, chartX, yPos);  // tick
+    noStroke();
     fill(0);
-    textSize(16);
-    textAlign(CENTER, CENTER);
-    pushMatrix();
-    translate(chartX - 50, chartY + chartH / 2);
-    rotate(-HALF_PI);
-    text("Number of Flights", 0, 0);
-    popMatrix();
-
-    int pointCount = sortedDates.size();
-    float spacing = chartW / (float)(pointCount - 1);
-
-    stroke(50, 150, 255);
-    strokeWeight(4);
-    noFill();
-    beginShape();
-    for (int i = 0; i < pointCount; i++) {
-      String date = sortedDates.get(i);
-      int val = dailyFlights.get(date);
-      float x = chartX + i * spacing;
-      float y = chartY + chartH - map(val, 0, maxFlights, 0, chartH);
-      vertex(x, y);
-    }
-    endShape();
-
-    fill(0);
-    textSize(12);
-    for (int i = 0; i < pointCount; i += max(1, pointCount / 6)) {
-      String date = sortedDates.get(i);
-      float x = chartX + i * spacing;
-      text(date, x, chartY + chartH + 15);
-    }
+    text(yVal, chartX - 10, yPos);
   }
+
+  // Draw data line
+  int pointCount = sortedDates.size();
+  float spacing = chartW / (float)(pointCount - 1);
+
+  stroke(50, 150, 255);
+  strokeWeight(4);
+  noFill();
+  beginShape();
+  for (int i = 0; i < pointCount; i++) {
+    String date = sortedDates.get(i);
+    int val = dailyFlights.get(date);
+    float x = chartX + i * spacing;
+    float y = chartY + chartH - map(val, 0, maxFlights, 0, chartH);
+    vertex(x, y);
+  }
+  endShape();
+
+  // X-axis labels
+  fill(0);
+  textSize(12);
+  textAlign(CENTER);
+  for (int i = 0; i < pointCount; i += max(1, pointCount / 6)) {
+    String date = sortedDates.get(i);
+    float x = chartX + i * spacing;
+    text(date, x, chartY + chartH + 15);
+  }
+}
 }
 
 class PieChartScreen extends Screen {
