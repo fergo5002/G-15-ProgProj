@@ -448,8 +448,13 @@ class FlightScreen extends Screen
     }
     if (cancelFilterButton.isClicked(mouseX, mouseY))
     {
-      showCancelled = !showCancelled;
-      cancelFilterButton.label = showCancelled ? "Hide Cancelled" : "Show All Flights";
+     showCancelled = !showCancelled;
+cancelFilterButton.label = showCancelled ? "Hide Cancelled" : "Show All Flights";
+
+if (!showCancelled && showCancelledOnly) {
+  showCancelledOnly = false;
+}
+
       scrollOffset = 0;
       targetScrollOffset = 0;
       scrollVelocity = 0;
