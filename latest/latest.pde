@@ -11,6 +11,7 @@ boolean showCancelled = true;
 int SCREENX = 1200;
 int SCREENY = 780;
 PFont sitkaFont;
+PImage toyPlane;
 
 
 
@@ -22,6 +23,8 @@ void settings()
   size(SCREENX, SCREENY);
   usaMap = loadImage("usaMap.png");
   usaMap.resize(SCREENX, SCREENY);
+  toyPlane = loadImage("toyPlane.png");
+  toyPlane.resize(51, 51);
 }
 
 void setup() 
@@ -34,6 +37,7 @@ void setup()
   chartScreen = new ChartScreen();
   mapScreen = new mapScreen();
   currentScreen = homeScreen;
+  
 }
 
 void draw() 
@@ -552,6 +556,12 @@ class FlightMapScreen extends Screen
   HashMap<String, float[]> airportCoords = new HashMap<String, float[]>();
   HashMap<String, PVector> airportOffsets = new HashMap<String, PVector>();
   
+  PVector originPos;
+  PVector destPos;
+  float animationProgress = 0.0;
+  float animationSpeed = 0.003; 
+  boolean animationComplete = false;
+  
   FlightMapScreen(TableRow row) 
   {
     flightRow = row;
@@ -609,6 +619,11 @@ class FlightMapScreen extends Screen
     airportCoords.put("STL", new float[]{38.7487f, -90.3700f});
     airportCoords.put("TPA", new float[]{27.9755f, -82.5332f});
     airportCoords.put("TUL", new float[]{36.1984f, -95.8881f});
+    
+    String origin = flightRow.getString("ORIGIN");
+    String dest = flightRow.getString("DEST");
+    originPos = getAirportScreenPosition(origin);
+    destPos = getAirportScreenPosition(dest);
   }
   
   void display() 
@@ -637,9 +652,33 @@ class FlightMapScreen extends Screen
     textAlign(CENTER, CENTER);
     text(origin, originPos.x, originPos.y - 15);
     text(dest, destPos.x, destPos.y - 15);
-    stroke(0, 0, 255);
+    
+     stroke(0, 0, 255);
     strokeWeight(3);
     line(originPos.x, originPos.y, destPos.x, destPos.y);
+    
+    if (!animationComplete) 
+    {
+      animationProgress += animationSpeed;
+      if (animationProgress >= 1.0) 
+      {
+        animationProgress = 0.0;  
+      }
+    }
+    
+    float currentX = lerp(originPos.x, destPos.x, animationProgress);
+    float currentY = lerp(originPos.y, destPos.y, animationProgress);
+    
+    float angle = atan2(destPos.y - originPos.y, destPos.x - originPos.x);
+    
+    pushMatrix();
+    translate(currentX, currentY);
+    rotate(angle + -55);
+    imageMode(CENTER);
+    image(toyPlane, 0, 0);
+    imageMode(CORNER);
+    popMatrix();
+    
   }
   
   void mousePressed() 
@@ -669,6 +708,16 @@ class FlightMapScreen extends Screen
     }
     return new PVector(x, y);
   }
+  
+  void restartAnimation() {
+    animationProgress = 0.0;
+    animationComplete = false;
+  }
+  
+  void setAnimationSpeed(float speed) {
+    animationSpeed = speed;
+  }
+  
 }
 
 class mapScreen extends Screen 
