@@ -387,19 +387,6 @@ class FlightScreen extends Screen
     int viewButtonH = 20;
     int viewButtonX = int(statusCol + 100);
     int viewButtonY = y + (rowHeight - viewButtonH) / 2;
-    // Check if mouse is hovered over button
-     boolean isHovered = mouseX >= viewButtonX && mouseX <= viewButtonX + viewButtonW &&
-                    mouseY >= viewButtonY && mouseY <= viewButtonY + viewButtonH;
- // if so add effect to show.
-    if (isHovered) {
-  fill(70, 180, 70); 
-  stroke(0, 200, 0);
-  strokeWeight(2);
-} else {
-  fill(50, 150, 50);
-  noStroke();
-}
-
     fill(50, 150, 50);
     rect(viewButtonX, viewButtonY, viewButtonW, viewButtonH, 5);
     fill(255);
@@ -461,13 +448,8 @@ class FlightScreen extends Screen
     }
     if (cancelFilterButton.isClicked(mouseX, mouseY))
     {
-     showCancelled = !showCancelled;
-cancelFilterButton.label = showCancelled ? "Hide Cancelled" : "Show All Flights";
-
-if (!showCancelled && showCancelledOnly) {
-  showCancelledOnly = false;
-}
-
+      showCancelled = !showCancelled;
+      cancelFilterButton.label = showCancelled ? "Hide Cancelled" : "Show All Flights";
       scrollOffset = 0;
       targetScrollOffset = 0;
       scrollVelocity = 0;
@@ -702,47 +684,59 @@ class FlightMapScreen extends Screen
   
   void display() 
   {
-   background(255);
-  image(usaMap, 0, 0, SCREENX, SCREENY);
-  backButton.display();
+    background(255);
+    image(usaMap, 0, 0, SCREENX, SCREENY);
+    backButton.display();
+    String flightInfo = flightRow.getString("FL_DATE") + " | " + flightRow.getString("MKT_CARRIER") + flightRow.getInt("MKT_CARRIER_FL_NUM") + " | " + flightRow.getString("ORIGIN") + " → " + flightRow.getString("DEST");
+    fill(0);
+    textSize(18);
+    textAlign(CENTER, CENTER);
+    text(flightInfo, SCREENX/2, 40);
+    String origin = flightRow.getString("ORIGIN");
+    String dest = flightRow.getString("DEST");
+
+    PVector originPos = getAirportScreenPosition(origin);
+    PVector destPos = getAirportScreenPosition(dest);
+
+    fill(255, 0, 0);
+    noStroke();
+    ellipse(originPos.x, originPos.y, 10, 10);
+    ellipse(destPos.x, destPos.y, 10, 10);
+
+    fill(0);
+    textSize(14);
+    textAlign(CENTER, CENTER);
+    text(origin, originPos.x, originPos.y - 15);
+    text(dest, destPos.x, destPos.y - 15);
+    
+     stroke(0, 0, 255);
+    strokeWeight(3);
+    line(originPos.x, originPos.y, destPos.x, destPos.y);
+    
+    if (!animationComplete) 
+    {
+      animationProgress += animationSpeed;
+      if (animationProgress >= 1.0) 
+      {
+        animationProgress = 0.0;  
+      }
+    }
+    
+    float currentX = lerp(originPos.x, destPos.x, animationProgress);
+    float currentY = lerp(originPos.y, destPos.y, animationProgress);
+    
+    float angle = atan2(destPos.y - originPos.y, destPos.x - originPos.x);
+    
+    pushMatrix();
+    translate(currentX, currentY);
+    rotate(angle + -55);
+    imageMode(CENTER);
+    image(toyPlane, 0, 0);
+    imageMode(CORNER);
+    popMatrix();
+    
+  }
   
-  String flightInfo = flightRow.getString("FL_DATE") + " | " + flightRow.getString("MKT_CARRIER") +
-                      flightRow.getInt("MKT_CARRIER_FL_NUM") + " | " + flightRow.getString("ORIGIN") + " → " +
-                      flightRow.getString("DEST");
-  fill(0);
-  textSize(18);
-  textAlign(CENTER, CENTER);
-  text(flightInfo, SCREENX/2, 40);
-
-  int cancelled = flightRow.getInt("CANCELLED");
-  if (cancelled == 1) {
-    // If flight was cancelled, show a message instead of drawing the route
-    fill(200, 0, 0);
-    textSize(20);
-    text("Flight did not leave the terminal (CANCELLED)", SCREENX/2, SCREENY/2);
-    return;
-  }
-
-  String origin = flightRow.getString("ORIGIN");
-  String dest = flightRow.getString("DEST");
-  PVector originPos = getAirportScreenPosition(origin);
-  PVector destPos = getAirportScreenPosition(dest);
-
-  fill(255, 0, 0);
-  noStroke();
-  ellipse(originPos.x, originPos.y, 10, 10);
-  ellipse(destPos.x, destPos.y, 10, 10);
-
-  fill(255);
-  textSize(14);
-  textAlign(CENTER, CENTER);
-  text(origin, originPos.x, originPos.y - 15);
-  text(dest, destPos.x, destPos.y - 15);
-
-  stroke(0, 0, 255);
-  strokeWeight(3);
-  line(originPos.x, originPos.y, destPos.x, destPos.y);
-  }
   void mousePressed() 
   {
     if (backButton.isClicked(mouseX, mouseY))
