@@ -656,12 +656,13 @@ class FlightScreen extends Screen
 class ChartScreen extends Screen 
 {
   ButtonWidget backButton;
-  
+  ButtonWidget nextChartButton;
   ChartScreen() 
     {
       backButton = new ButtonWidget(50, 10, 100, 30, "Back");
       barChart.animationProgress = 0;
-      barChart.animating = true;  
+      barChart.animating = true; 
+      nextChartButton = new ButtonWidget(180, 10, 150, 30, "Next Chart"); 
     }
   
   void display() 
@@ -669,6 +670,7 @@ class ChartScreen extends Screen
     background(240);
     barChart.display();
     backButton.display();
+    nextChartButton.display();
   }
   
   void mousePressed() 
@@ -676,6 +678,11 @@ class ChartScreen extends Screen
     if (backButton.isClicked(mouseX, mouseY))
     {
       currentScreen = flightScreen;
+    }
+    if (nextChartButton.isClicked(mouseX, mouseY)) 
+    {
+      currentScreen = new SecondChartScreen();
+      return;
     }
   }
 }
@@ -1265,5 +1272,177 @@ class BarChartWidget extends Screen
     rect(SCREENX - 150, 160, 15, 15);
     fill(0);
     text("Diverted", SCREENX - 130, 173);
+  }
+}
+
+class LineChartScreen extends Screen {
+  ButtonWidget backButton;
+  ButtonWidget nextButton;
+  HashMap<String, Integer> dailyFlights = new HashMap<>();
+  int maxFlights = 0;
+
+  LineChartScreen() {
+    backButton = new ButtonWidget(50, 10, 100, 30, "Back");
+    nextButton = new ButtonWidget(180, 10, 150, 30, "Next Chart");
+
+    for (TableRow row : table.rows()) {
+      String date = row.getString("FL_DATE").split(" ")[0];
+      dailyFlights.put(date, dailyFlights.getOrDefault(date, 0) + 1);
+    }
+
+    for (int count : dailyFlights.values()) {
+      if (count > maxFlights) maxFlights = count;
+    }
+  }
+
+  void display() {
+    background(255);
+    fill(0);
+    textAlign(CENTER, CENTER);
+    textSize(30);
+    text("Flights Over Time", SCREENX / 2, 60);
+    drawLineChart();
+    backButton.display();
+    nextButton.display();
+  }
+
+  void mousePressed() {
+    if (backButton.isClicked(mouseX, mouseY)) {
+      currentScreen = chartScreen;
+    }
+    if (nextButton.isClicked(mouseX, mouseY)) {
+      currentScreen = new PieChartScreen();
+    }
+  }
+
+  void drawLineChart() {
+    int chartX = 100;
+    int chartY = 120;
+    int chartW = SCREENX - 200;
+    int chartH = 300;
+
+    ArrayList<String> sortedDates = new ArrayList<>(dailyFlights.keySet());
+    sortedDates.sort((a, b) -> a.compareTo(b));
+
+    stroke(0);
+    strokeWeight(1);
+    line(chartX, chartY, chartX, chartY + chartH); // y-axis
+    line(chartX, chartY + chartH, chartX + chartW, chartY + chartH); // x-axis
+
+    fill(0);
+    textSize(16);
+    textAlign(CENTER, CENTER);
+    pushMatrix();
+    translate(chartX - 50, chartY + chartH / 2);
+    rotate(-HALF_PI);
+    text("Number of Flights", 0, 0);
+    popMatrix();
+
+    int pointCount = sortedDates.size();
+    float spacing = chartW / (float)(pointCount - 1);
+
+    stroke(50, 150, 255);
+    strokeWeight(4);
+    noFill();
+    beginShape();
+    for (int i = 0; i < pointCount; i++) {
+      String date = sortedDates.get(i);
+      int val = dailyFlights.get(date);
+      float x = chartX + i * spacing;
+      float y = chartY + chartH - map(val, 0, maxFlights, 0, chartH);
+      vertex(x, y);
+    }
+    endShape();
+
+    fill(0);
+    textSize(12);
+    for (int i = 0; i < pointCount; i += max(1, pointCount / 6)) {
+      String date = sortedDates.get(i);
+      float x = chartX + i * spacing;
+      text(date, x, chartY + chartH + 15);
+    }
+  }
+}
+
+class PieChartScreen extends Screen {
+  ButtonWidget backButton;
+  HashMap<String, Integer> outcomeCounts = new HashMap<>();
+
+  PieChartScreen() {
+    backButton = new ButtonWidget(50, 10, 100, 30, "Back");
+
+    int onTime = 0;
+    int cancelled = 0;
+    int diverted = 0;
+
+    for (TableRow row : table.rows()) {
+      int c = row.getInt("CANCELLED");
+      int d = row.getInt("DIVERTED");
+      if (c == 1) cancelled++;
+      else if (d == 1) diverted++;
+      else onTime++;
+    }
+
+    outcomeCounts.put("On Time", onTime);
+    outcomeCounts.put("Cancelled", cancelled);
+    outcomeCounts.put("Diverted", diverted);
+  }
+
+  void display() {
+    background(255);
+    fill(0);
+    textAlign(CENTER, CENTER);
+    textSize(30);
+    text("Flight Outcome Distribution", SCREENX / 2, 60);
+    drawPieChart();
+    backButton.display();
+  }
+
+  void mousePressed() {
+    if (backButton.isClicked(mouseX, mouseY)) {
+      currentScreen = new LineChartScreen();
+    }
+  }
+
+  void drawPieChart() {
+    int centerX = SCREENX / 2;
+    int centerY = SCREENY / 2;
+    float radius = 160;
+
+    int total = 0;
+    for (int count : outcomeCounts.values()) total += count;
+
+    float angleStart = 0;
+    for (String label : outcomeCounts.keySet()) {
+      float value = outcomeCounts.get(label);
+      float angle = map(value, 0, total, 0, TWO_PI);
+
+      if (label.equals("On Time")) fill(100, 200, 100);
+      else if (label.equals("Cancelled")) fill(255, 100, 100);
+      else fill(100, 100, 255);
+
+      arc(centerX, centerY, radius * 2, radius * 2, angleStart, angleStart + angle);
+      angleStart += angle;
+    }
+
+    // Legend
+    int legendX = centerX + 200;
+    int legendY = centerY - 60;
+    int boxSize = 20;
+
+    textAlign(LEFT, CENTER);
+    textSize(16);
+    int i = 0;
+    for (String label : outcomeCounts.keySet()) {
+      int val = outcomeCounts.get(label);
+      if (label.equals("On Time")) fill(100, 200, 100);
+      else if (label.equals("Cancelled")) fill(255, 100, 100);
+      else fill(100, 100, 255);
+
+      rect(legendX, legendY + i * 30, boxSize, boxSize);
+      fill(0);
+      text(label + ": " + val, legendX + boxSize + 10, legendY + i * 30 + boxSize / 2);
+      i++;
+    }
   }
 }
