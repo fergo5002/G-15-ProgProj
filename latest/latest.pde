@@ -49,17 +49,7 @@ void loadingDataIntoBackground(){
   dataLoaded = true;
 }
 
-void setup() 
-{
-  sitkaFont = loadFont("Consolas.vlw");
-  table = loadTable("flights.csv", "header");
-  barChart = new BarChartWidget(100, 100, SCREENX - 200, SCREENY - 300, table);
-  homeScreen = new HomeScreen();
-  flightScreen = new FlightScreen();
-  chartScreen = new ChartScreen();
-  mapScreen = new mapScreen();
-  currentScreen = homeScreen;
-}
+
 
 void draw() 
 {
