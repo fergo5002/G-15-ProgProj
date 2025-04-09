@@ -1,3 +1,4 @@
+import processing.video.*;
 // these are the main variables for our program
 Table table;  // stores all them flight data
 BarChartWidget barChart;  // makes those cool bar graphs
