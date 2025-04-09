@@ -21,35 +21,35 @@ boolean dataLoaded = false;
 
 void settings() 
 {
-  size(SCREENX, SCREENY);
-  plane = loadImage("plane-photo(1).jpg");
-  plane.resize(SCREENX, SCREENY);
-  size(SCREENX, SCREENY);
-  usaMap = loadImage("usaMap.png");
-  usaMap.resize(SCREENX, SCREENY);
-  toyPlane = loadImage("toyPlane.png");
-  toyPlane.resize(51, 51);
+  size(SCREENX, SCREENY);         // initialising the size of the display, dimensions are finalized above.
+  plane = loadImage("plane-photo(1).jpg");   // loading the image of the plane into the program
+  plane.resize(SCREENX, SCREENY);     // resizing the plane to have it appropriately fit our screen dimensions
+  size(SCREENX, SCREENY);             // same thing as above bud
+  usaMap = loadImage("usaMap.png");     // loading the map of the USA into the program 
+  usaMap.resize(SCREENX, SCREENY);      // resizing the size of the map to have it fit nicely into our program
+  toyPlane = loadImage("toyPlane.png");  // loading the image of the toy plane into the program
+  toyPlane.resize(51, 51);               //  resizing the size of the toy plane to have it fit nicely into our program
   
 }
 
-void setup() 
+void setup() // setup of the program
 {
-  loadingStartTime = millis();
-  currentScreen = new loadingScreen(this);
+  loadingStartTime = millis();    // having the loading timeset to milliseconds
+  currentScreen = new loadingScreen(this);  // saying that the current screen we are on is the loading screen
   
-  thread("loadingDataIntoBackground");
+  thread("loadingDataIntoBackground");     // showing the loading animation as a thread
 }
 
-void loadingDataIntoBackground(){
-  sitkaFont = loadFont("Consolas.vlw");
-  table = loadTable("flights.csv", "header");
-  barChart = new BarChartWidget(100, 100, SCREENX - 200, SCREENY - 300, table);
-  homeScreen = new HomeScreen();
-  flightScreen = new FlightScreen();
-  chartScreen = new ChartScreen();
-  mapScreen = new mapScreen();
+void loadingDataIntoBackground(){      // the "loadingDataIntoBackground" class for our loading screen 
+  sitkaFont = loadFont("Consolas.vlw");   // loading the font "Consolas.vlw" into the program, cuz it's bussin
+  table = loadTable("flights.csv", "header");  // Laoding the data into the program
+  barChart = new BarChartWidget(100, 100, SCREENX - 200, SCREENY - 300, table);  // plugging in dinmensions of the barchart into the program
+  homeScreen = new HomeScreen();   // initialising the home screen
+  flightScreen = new FlightScreen();  // initialising the flightscreen
+  chartScreen = new ChartScreen();  //initialising the chart screen
+  mapScreen = new mapScreen();    // initialising the map screen
  
-  dataLoaded = true;
+  dataLoaded = true;    // setting the data loaded to true because we just did it above
 }
 
 void movieEvent(Movie m){
@@ -189,20 +189,20 @@ class HomeScreen extends Screen
     startButton = new ButtonWidget(SCREENX/2 - 100, SCREENY/2 + 50, 200, 50, "Start FlyRadar");
   }
   
-  void display() 
+  void display() //class for the display of the home screen
   {
-    background(25, 25, 112);
-    image(plane, 0, 0);
-    fill(0, 0, 50, 100);
-    rect(0, 0, SCREENX, SCREENY);
-    fill(255);
-    textSize(80);
-    textAlign(CENTER, CENTER);
-    text("FlyRadar", SCREENX/2, SCREENY/2 - 100);
-    textSize(24);
-    text("Flight Data Visualization Tool", SCREENX/2, SCREENY/2 - 40);
-    startButton.display();
-    float pulseValue = 128 + 127 * sin(frameCount * 0.05);
+    background(25, 25, 112);   // Setting the colour of the homescreen
+    image(plane, 0, 0);        // Putting plane image into the home screen
+    fill(0, 0, 50, 100);      // Setting colour of the home screen
+    rect(0, 0, SCREENX, SCREENY);   // setting rectangle for the screen using our finalised values: Screen X and Y
+    fill(255);     // making it white
+    textSize(80);   // Setting the size of text, it's as massive as the low taper fade meme
+    textAlign(CENTER, CENTER);   // Aligning thge text with the centre
+    text("FlyRadar", SCREENX/2, SCREENY/2 - 100);   // Having the text 
+    textSize(24);   // size of the text is 24
+    text("Flight Data Visualization Tool", SCREENX/2, SCREENY/2 - 40); // putting the text in 
+    startButton.display();    // displaying the start button
+    float pulseValue = 128 + 127 * sin(frameCount * 0.05);  // Our sin function to make the text pulse, its sick.
     fill(pulseValue);
     textSize(18);
     text("Click Start to Explore Flight Data", SCREENX/2, SCREENY/2 + 150);
