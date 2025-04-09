@@ -3,6 +3,7 @@ Table table;  // stores all them flight data
 BarChartWidget barChart;  // makes those cool bar graphs
 PImage plane;  // our sexy background image!
 PImage usaMap;  // map of the USA for the flight map screen
+Movie loadingVideo;
 Screen currentScreen;  // keeps track of which screen were on
 HomeScreen homeScreen;  // the welcome screen with the cool plane
 FlightScreen flightScreen;  // where all the magic happens lol
@@ -50,6 +51,12 @@ void loadingDataIntoBackground(){
   dataLoaded = true;
 }
 
+void movieEvent(Movie m){
+    if(m!=null){
+       m.read();
+    }
+  }
+
 
 
 void draw() 
@@ -91,34 +98,49 @@ abstract class Screen
   }
 }
 
-class loadingScreen extends Screen{
+class loadingScreen extends Screen {
   float progress = 0;
-  String status = "";
+  String status = "Loading Flight Data...";  
+  boolean videoAvailable = false;
+  PApplet parent;
+  
+  loadingScreen(PApplet parent) {
+    this.parent=parent;
+    try {
+      // Initialize video - make sure "loadingVideo.mp4" exists in your data folder
+      loadingVideo = new Movie(parent, "loadingVideo.mp4");
+      loadingVideo.loop();
+      videoAvailable = true;
+      println("Video loaded successfully");
+    } catch (Exception e) {
+      println("Error loading video: " + e.getMessage());
+      videoAvailable = false;
+    }
+  }
   
   void display() {
-    background(20, 20, 250);
+    // Display the video as the background for the loading screen.
+    if (videoAvailable && loadingVideo != null && loadingVideo.width > 0) {
+      image(loadingVideo, 0, 0, width, height);
+      if(loadingVideo.available()){
+        loadingVideo.read();
+      }
+    } else {
+      // Fallback background if video fails
+      background(0);
+      fill(100);
+      rect(0, 0, width, height);
+    }    
     
     // Calculate progress (either time-based or completion-based)
     float timeProgress = min(1.0, (millis() - loadingStartTime) / 5000.0);
     progress = dataLoaded ? 1.0 : timeProgress * 0.9; // Cap at 90% until data loads
     
-    // Draw loading text
-    fill(255);
-    textSize(40);
-    textAlign(CENTER, CENTER);
-    text("Loading Flight Data...", width/2, height/2 - 50);
-    
-    // Draw percentage text
-    textSize(24);
-    text(nf(progress * 100, 1, 1) + "%", width/2, height/2 + 80);
-    
-    // Draw progress bar
     drawProgressBar(width/2 - 150, height/2, 300, 20, progress);
     
-    // Transition when data is loaded and minimum time has passed
     if (dataLoaded) {
       status = "Loading complete!";
-    } else if (millis() - loadingStartTime > 6000) { // Timeout after 6 seconds
+    } else if (millis() - loadingStartTime > 6000) {
       status = "Taking longer than expected...";
     }
     
@@ -127,30 +149,26 @@ class loadingScreen extends Screen{
     textAlign(CENTER, CENTER);
     text(status, width/2, height/2 - 80);
     
-    // Draw percentage text
     textSize(24);
     text(nf(progress * 100, 1, 1) + "%", width/2, height/2 + 80);
-    
-    // Draw progress bar
     drawProgressBar(width/2 - 150, height/2, 300, 20, progress);
     
-    // Transition when data is loaded and minimum time has passed
+    // Transition: if data is loaded and after a minimum time, switch to the home screen.
     if (dataLoaded && millis() - loadingStartTime > 2000) {
+      // Optionally, stop the video playback.
+      loadingVideo.stop();
       currentScreen = homeScreen;
     }
   }
   
   void drawProgressBar(float x, float y, float w, float h, float p) {
-    // Background
     noStroke();
     fill(100);
     rect(x, y, w, h, 10);
     
-    // Foreground
     fill(100, 200, 255);
     rect(x, y, w * p, h, 10);
     
-    // Outline
     noFill();
     stroke(255);
     strokeWeight(2);
@@ -796,6 +814,7 @@ class FlightMapScreen extends Screen
     textAlign(CENTER, CENTER);
     text(flightInfo, SCREENX/2, 40);
     int cancelled  = flightRow.getInt("CANCELLED");
+    strokeWeight(0);
 
     if ( cancelled == 1) {
     fill (200,0,0); 
@@ -928,6 +947,7 @@ class mapScreen extends Screen
     background(255);
     image(usaMap, 0, 0, SCREENX, SCREENY);
     drawStateLabels();
+    strokeWeight(0);
     backButton.display();
   }
   
@@ -1011,6 +1031,7 @@ class ButtonWidget extends Screen
   
   void display() 
   {
+    strokeWeight(0);
     if (label.equals("Back"))
     {
       fill(200, 50, 50);
@@ -1090,6 +1111,7 @@ class DropdownWidget extends Screen
     rect(x, y, w, h, 5);
     fill(0);
     text(selected, x + 10, y + h - 5);
+    strokeWeight(0);
     if (expanded)
     {
       int maxDropdownHeight = SCREENY - y - h - 20;
@@ -1208,6 +1230,7 @@ class BarChartWidget extends Screen
     // warning: this function is a mess but it makes pretty charts
     // just dont touch anything and it'll be fine
     fill(240);
+    strokeWeight(0);
     if (animating) 
     {
       animationProgress += 0.02;  
