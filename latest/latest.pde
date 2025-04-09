@@ -469,7 +469,13 @@ class FlightScreen extends Screen
     int viewButtonH = 20;
     int viewButtonX = int(statusCol + 100);
     int viewButtonY = y + (rowHeight - viewButtonH) / 2;
-    fill(50, 150, 50);
+    boolean hovering = mouseX >= viewButtonX && mouseX <= viewButtonX + viewButtonW &&
+     mouseY >= viewButtonY && mouseY <= viewButtonY + viewButtonH;
+     if (hovering){
+     fill(60,180,60);
+     }else{
+     fill(50,150,50);
+     }
     rect(viewButtonX, viewButtonY, viewButtonW, viewButtonH, 5);
     fill(255);
     textAlign(CENTER, CENTER);
