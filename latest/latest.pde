@@ -35,7 +35,7 @@ void settings()
 void setup() 
 {
   loadingStartTime = millis();
-  currentScreen = new loadingScreen();
+  currentScreen = new loadingScreen(this);
   
   thread("loadingDataIntoBackground");
 }
