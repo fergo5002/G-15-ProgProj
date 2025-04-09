@@ -1,16 +1,3 @@
-/*
-
-
-
-
-
-  FlyRadar - Flight Data Visualization Tool
-  Created by [Your Name] on [Date]
-  This program visualizes flight data using Processing.
-  It allows users to filter and view flight information, including a map and charts.
-*/
-
-
 // these are the main variables for our program
 Table table;  // stores all them flight data
 BarChartWidget barChart;  // makes those cool bar graphs
@@ -21,11 +8,14 @@ HomeScreen homeScreen;  // the welcome screen with the cool plane
 FlightScreen flightScreen;  // where all the magic happens lol
 ChartScreen chartScreen;  // shows them graphs
 mapScreen mapScreen;  // screen for selecting states
-boolean showCancelled = true;  // this controls if we show cancelled flights or not
+loadingScreen loadingScreen;
+boolean showCancelled = true;  // this bad boi controls if we show cancelled flights or not
 int SCREENX = 1200;  // screen dimensions - dont mess with these unless u want everything to break!!
 int SCREENY = 780;
-PFont sitkaFont;  // our font
+PFont sitkaFont;  // our pretty font
 PImage toyPlane;  // toy plane image for animations
+int loadingStartTime;
+boolean dataLoaded = false;
 
 void settings() 
 {
@@ -41,6 +31,15 @@ void settings()
 
 void setup() 
 {
+  loadingStartTime = millis();
+  loadingScreen = new loadingScreen();
+  currentScreen = loadingScreen;
+  
+  thread("loadingDataIntoBackground");
+}
+
+void loadingDataIntoBackground() 
+{
   sitkaFont = loadFont("Consolas.vlw");
   table = loadTable("flights.csv", "header");
   barChart = new BarChartWidget(100, 100, SCREENX - 200, SCREENY - 300, table);
@@ -48,8 +47,11 @@ void setup()
   flightScreen = new FlightScreen();
   chartScreen = new ChartScreen();
   mapScreen = new mapScreen();
-  currentScreen = homeScreen;
+ 
+  dataLoaded = true;
 }
+
+
 
 void draw() 
 {
@@ -87,6 +89,73 @@ abstract class Screen
   
   void mouseWheel(MouseEvent event) 
   {
+  }
+}
+
+class loadingScreen extends Screen{
+  float progress = 0;
+  String status = "";
+  
+  void display() {
+    background(20, 20, 250);
+    
+    // Calculate progress (either time-based or completion-based)
+    float timeProgress = min(1.0, (millis() - loadingStartTime) / 5000.0);
+    progress = dataLoaded ? 1.0 : timeProgress * 0.9; // Cap at 90% until data loads
+    
+    // Draw loading text
+    fill(255);
+    textSize(40);
+    textAlign(CENTER, CENTER);
+    text("Loading Flight Data...", width/2, height/2 - 50);
+    
+    // Draw percentage text
+    textSize(24);
+    text(nf(progress * 100, 1, 1) + "%", width/2, height/2 + 80);
+    
+    // Draw progress bar
+    drawProgressBar(width/2 - 150, height/2, 300, 20, progress);
+    
+    // Transition when data is loaded and minimum time has passed
+    if (dataLoaded) {
+      status = "Loading complete!";
+    } else if (millis() - loadingStartTime > 6000) { // Timeout after 6 seconds
+      status = "Taking longer than expected...";
+    }
+    
+    fill(255);
+    textSize(40);
+    textAlign(CENTER, CENTER);
+    text(status, width/2, height/2 - 80);
+    
+    // Draw percentage text
+    textSize(24);
+    text(nf(progress * 100, 1, 1) + "%", width/2, height/2 + 80);
+    
+    // Draw progress bar
+    drawProgressBar(width/2 - 150, height/2, 300, 20, progress);
+    
+    // Transition when data is loaded and minimum time has passed
+    if (dataLoaded && millis() - loadingStartTime > 2000) {
+      currentScreen = homeScreen;
+    }
+  }
+  
+  void drawProgressBar(float x, float y, float w, float h, float p) {
+    // Background
+    noStroke();
+    fill(100);
+    rect(x, y, w, h, 10);
+    
+    // Foreground
+    fill(100, 200, 255);
+    rect(x, y, w * p, h, 10);
+    
+    // Outline
+    noFill();
+    stroke(255);
+    strokeWeight(2);
+    rect(x, y, w, h, 10);
   }
 }
 
@@ -260,8 +329,8 @@ class FlightScreen extends Screen
     fill(100);
     textSize(18);
     textAlign(RIGHT);
-    text("Showing " + (showCancelled ? "all flights" : "only non-cancelled flights"), cancelFilterButton.x - 10, cancelFilterButton.y + 20);
-  
+    text("Showing all ", cancelFilterButton.x - 10, cancelFilterButton.y + 15);
+    text(showCancelled ? " flights" : "non-cancelled flights", cancelFilterButton.x - 10, cancelFilterButton.y + 32);  
     
   }
   
@@ -705,6 +774,15 @@ class FlightMapScreen extends Screen
     textSize(18);
     textAlign(CENTER, CENTER);
     text(flightInfo, SCREENX/2, 40);
+    int cancelled  = flightRow.getInt("CANCELLED");
+
+    if ( cancelled == 1) {
+    fill (200,0,0); 
+    textSize(22); 
+    text("Flight did not leave the terminal (CANCELLED)", SCREENX / 2, SCREENY / 2);
+    return;
+  }
+
     String origin = flightRow.getString("ORIGIN");
     String dest = flightRow.getString("DEST");
 
