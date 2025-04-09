@@ -1,4 +1,6 @@
 import processing.video.*;
+import processing.sound.*;
+SoundFile easterSound;
 // these are the main variables for our program
 Table table;  // stores all them flight data
 BarChartWidget barChart;  // makes those cool bar graphs
@@ -41,6 +43,8 @@ void settings()
 
 void setup() // setup of the program
 {
+  easterSound = new SoundFile(this, "easterSound.mp3");
+// easterSound.play();
   loadingStartTime = millis();    // having the loading timeset to milliseconds
   currentScreen = new loadingScreen(this);  // saying that the current screen we are on is the loading screen
   
@@ -111,6 +115,7 @@ class loadingScreen extends Screen {
   String status = "Loading Flight Data...";  
   boolean videoAvailable = false;
   PApplet parent;
+ 
   
   loadingScreen(PApplet parent) {
     this.parent=parent;
@@ -227,9 +232,26 @@ class HomeScreen extends Screen
     }
        if (!showEasterEgg && mouseX > SCREENX - 60 && mouseY > SCREENY - 60) {
     showEasterEgg = true;
-  } else if (showEasterEgg && mouseX >= eggPosition.x && mouseX <= eggPosition.x + eggWidth && mouseY >= eggPosition.y && mouseY <= eggPosition.y + eggHeight) {
+  } 
+  else if (showEasterEgg && mouseX >= eggPosition.x && mouseX <= eggPosition.x + eggWidth && mouseY >= eggPosition.y && mouseY <= eggPosition.y + eggHeight) 
+  {
     showEasterEgg = false;
   }
+  
+  if (!showEasterEgg && mouseX > SCREENX - 60 && mouseY > SCREENY - 60) {
+  showEasterEgg = true;
+  if (easterSound != null) {
+    easterSound.play();  // ✅ Safe play call
+  } else {
+    println("easterSound is null — make sure it's loaded in setup()");
+  }
+}
+else if (showEasterEgg && eggPosition != null &&
+         mouseX >= eggPosition.x && mouseX <= eggPosition.x + eggWidth &&
+         mouseY >= eggPosition.y && mouseY <= eggPosition.y + eggHeight){
+  showEasterEgg = false;
+}
+  
   }
 }
 
@@ -315,8 +337,8 @@ class FlightScreen extends Screen
     text("Show Only Diverted:", 330, 70);
     drawCheckbox(500, 58, showDivertedOnly);
     targetScrollOffset += scrollVelocity;
-    scrollVelocity *= scrollFriction;
-    if (abs(scrollVelocity) < 0.1)
+scrollVelocity *= 0.85;
+if (abs(scrollVelocity) < 0.5) scrollVelocity = 0;    if (abs(scrollVelocity) < 0.1)
     {
       scrollVelocity = 0;
     }
@@ -362,7 +384,7 @@ class FlightScreen extends Screen
     cancelFilterButton.display();
     mapButton.display();
     fill(100);
-    textSize(20);
+    textSize(18);
     textAlign(RIGHT);
     text("Showing all ", cancelFilterButton.x - 10, cancelFilterButton.y + 15);
     text(showCancelled ? " flights" : "non-cancelled flights", cancelFilterButton.x - 10, cancelFilterButton.y + 32);  
