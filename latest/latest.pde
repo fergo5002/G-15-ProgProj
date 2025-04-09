@@ -198,6 +198,7 @@ class HomeScreen extends Screen
   }
 }
 
+
 class FlightScreen extends Screen 
 {
   // omg this is the most complicated screen ever lmao
@@ -278,14 +279,12 @@ class FlightScreen extends Screen
     fill(0);
     text("Show Only Diverted:", 330, 70);
     drawCheckbox(500, 58, showDivertedOnly);
-
     targetScrollOffset += scrollVelocity;
-    scrollVelocity *= 0.85;
-    if (abs(scrollVelocity) < 0.5) 
+    scrollVelocity *= scrollFriction;
+    if (abs(scrollVelocity) < 0.1)
     {
-        scrollVelocity = 0;
-      }
-
+      scrollVelocity = 0;
+    }
     int dataRowCount = 0;
     for (int i = 0; i < table.getRowCount(); i++)
     {
@@ -345,28 +344,26 @@ class FlightScreen extends Screen
     int rowHeight = 30;
     int startIndex = max(0, (int)(scrollOffset / rowHeight));
     int visibleRows = (SCREENY - 160) / rowHeight + 2;
-  ArrayList<TableRow> filteredRows = new ArrayList<TableRow>();
-for (int i = 0; i < table.getRowCount(); i++) {
-  TableRow row = table.getRow(i);
-  if (passesFilters(row)) {
-    filteredRows.add(row);
-  }
-}
-
-int totalFilteredRows = filteredRows.size();
-int start = min(startIndex, totalFilteredRows);
-int end = min(start + visibleRows, totalFilteredRows);
-
- yOffset = 160 - (int)scrollOffset;
-
-for (int i = start; i < end; i++) {
-  TableRow row = filteredRows.get(i);
-  drawFlightRow(row, yOffset, rowHeight);
-  yOffset += rowHeight;
-}
-
-drawScrollIndicator(totalFilteredRows, rowHeight);
-drawFooter();
+    int processedRows = 0;
+    int totalFilteredRows = 0;
+    for (int i = 0; i < table.getRowCount(); i++)
+    {
+      TableRow row = table.getRow(i);
+      if (!passesFilters(row))
+      {
+        continue;
+      }
+      totalFilteredRows++;
+      if (totalFilteredRows >= startIndex && processedRows < visibleRows)
+      {
+        if (yOffset > 160 && yOffset < maxY)
+        {
+          drawFlightRow(row, yOffset, rowHeight);
+          processedRows++;
+        }
+      }
+      yOffset += rowHeight;
+    }
     drawScrollIndicator(totalFilteredRows, rowHeight);
     drawFooter();
   }
@@ -643,7 +640,6 @@ drawFooter();
   
   void drawScrollIndicator(int totalRows, int rowHeight) 
   {
-    if (totalRows * rowHeight <= SCREENY - 130) return;
     int totalHeight = totalRows * rowHeight;
     if (totalHeight <= SCREENY - 130)
     {
