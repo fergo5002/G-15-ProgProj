@@ -331,7 +331,10 @@ class FlightScreen extends Screen
     textAlign(RIGHT);
     text("Showing all ", cancelFilterButton.x - 10, cancelFilterButton.y + 15);
     text(showCancelled ? " flights" : "non-cancelled flights", cancelFilterButton.x - 10, cancelFilterButton.y + 32);  
-    
+    fill(0);
+    textAlign(LEFT);
+    textSize(16);
+    text("showing " + getFilteredCount() + " matching flights", 50, 120); 
   }
   
   void displayFlights() 
