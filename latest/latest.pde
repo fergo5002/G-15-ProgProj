@@ -532,6 +532,9 @@ class FlightScreen extends Screen
     {
       showCancelled = !showCancelled;
       cancelFilterButton.label = showCancelled ? "Hide Cancelled" : "Show All Flights";
+      if (!showCancelled != showCancelledOnly){
+      showCancelledOnly = false; 
+      }
       scrollOffset = 0;
       targetScrollOffset = 0;
       scrollVelocity = 0;
