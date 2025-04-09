@@ -1,12 +1,5 @@
-import java.util.HashSet;
+// these are the main variables for our program
 Table table;  // stores all them flight data
-ArrayList<TableRow> loadedFlights = new ArrayList<TableRow>(); // currently loaded flights
-BufferedReader reader; // for buffered reading
-int totalFlightCount = 0; // total number of flights in the file
-int batchSize = 100; // how many flights to load at once
-boolean isLoading = false; // are we currently loading flights
-ButtonWidget loadMoreButton; // button to load more data
-boolean endOfFile = false; // have we reached the end of the file
 BarChartWidget barChart;  // makes those cool bar graphs
 PImage plane;  // our sexy background image!
 PImage usaMap;  // map of the USA for the flight map screen
@@ -34,117 +27,30 @@ void settings()
   usaMap.resize(SCREENX, SCREENY);
   toyPlane = loadImage("toyPlane.png");
   toyPlane.resize(51, 51);
+  
 }
 
 void setup() 
 {
   loadingStartTime = millis();
   currentScreen = new loadingScreen();
-  thread("initializeDataLoading");
   
+  thread("loadingDataIntoBackground");
 }
 
- void loadMoreFlightsInBackground() 
- {
-  isLoading = true;
-  loadNextBatch();
-  flightScreen.updateAirlineOptions();
-  flightScreen.updateDateOptions();
-
-  if (barChart != null) {
-    barChart = new BarChartWidget(100, 100, SCREENX - 200, SCREENY - 300, table);
-  }
-
-  isLoading = false;
-}
-
-void initializeDataLoading() 
-{
+void loadingDataIntoBackground(){
   sitkaFont = loadFont("Consolas.vlw");
-  
-  // Initialize the table with just headers instead of loading all data at once
-  table = new Table();
-  
-  // Add all the columns our application expects
-  table.addColumn("FL_DATE");
-  table.addColumn("MKT_CARRIER");
-  table.addColumn("MKT_CARRIER_FL_NUM");
-  table.addColumn("ORIGIN");
-  table.addColumn("DEST");
-  table.addColumn("DISTANCE");
-  table.addColumn("CANCELLED");
-  table.addColumn("DIVERTED");
-  table.addColumn("ORIGIN_STATE_ABR");
-  
-  try {
-    // Open the file with a BufferedReader
-    reader = createReader("flights.csv");
-    
-    // Skip the header line
-    String headerLine = reader.readLine();
-    String[] headers = split(headerLine, ',');
-    
-    // Load first batch
-    loadNextBatch();
-  } 
-  catch (IOException e) {
-    println("Error loading file: " + e.getMessage());
-  }
-  
+  table = loadTable("flights.csv", "header");
   barChart = new BarChartWidget(100, 100, SCREENX - 200, SCREENY - 300, table);
   homeScreen = new HomeScreen();
   flightScreen = new FlightScreen();
   chartScreen = new ChartScreen();
   mapScreen = new mapScreen();
-  
+ 
   dataLoaded = true;
 }
 
-// Function to load the next batch of data
-void loadNextBatch() {
-  isLoading = true;
-  
-  try {
-    int count = 0;
-    String line;
-    
-    while ((line = reader.readLine()) != null && count < batchSize) {
-      String[] pieces = split(line, ',');
-      
-      // Create a new row in our table
-      TableRow newRow = table.addRow();
-      
-      // Set the data for each column
-      // The indices depend on your CSV structure
-      newRow.setString("FL_DATE", pieces[0]);
-      newRow.setString("MKT_CARRIER", pieces[1]);
-      newRow.setInt("MKT_CARRIER_FL_NUM", int(pieces[2]));
-      newRow.setString("ORIGIN", pieces[3]);
-      newRow.setString("DEST", pieces[4]);
-      newRow.setFloat("DISTANCE", float(pieces[5]));
-      newRow.setInt("CANCELLED", int(pieces[6]));
-      newRow.setInt("DIVERTED", int(pieces[7]));
-      newRow.setString("ORIGIN_STATE_ABR", pieces[8]);
-      
-      // Add this row to our loaded flights list
-      loadedFlights.add(newRow);
-      
-      count++;
-      totalFlightCount++;
-    }
-    
-    if (line == null) {
-      endOfFile = true;
-      reader.close();
-    }
-  }
-  catch (IOException e) {
-    println("Error reading file: " + e.getMessage());
-    endOfFile = true;
-  }
-  
-  isLoading = false;
-}
+
 
 void draw() 
 {
@@ -337,36 +243,10 @@ class FlightScreen extends Screen
     cancelFilterButton = new ButtonWidget(750, 10, 200, 30, "Hide Cancelled");
     mapButton = new ButtonWidget(970, 50, 200, 30, "View Map");
     clearStateButton = new ButtonWidget(750, 50, 200, 30, "Clear State Filter");
-    loadMoreButton = new ButtonWidget(SCREENX / 2 - 100, SCREENY - 60, 200, 40, "Load More Flights");
 
   
 
   }
-  void updateAirlineOptions() {
-  dropdown.options.clear();
-  dropdown.addOption("ALL");
-  HashSet<String> carriers = new HashSet<String>();
-  for (TableRow row : table.rows()) {
-    String carrier = row.getString("MKT_CARRIER");
-    if (!carriers.contains(carrier)) {
-      carriers.add(carrier);
-      dropdown.addOption(carrier);
-    }
-  }
-}
-
-void updateDateOptions() {
-  dateDropdown.options.clear();
-  dateDropdown.addOption("ALL");
-  HashSet<String> dates = new HashSet<String>();
-  for (TableRow row : table.rows()) {
-    String date = row.getString("FL_DATE").split(" ")[0];
-    if (!dates.contains(date)) {
-      dates.add(date);
-      dateDropdown.addOption(date);
-    }
-  }
-}
   
   
   void drawCheckbox(int x, int y, boolean checked)
@@ -417,7 +297,7 @@ void updateDateOptions() {
         dataRowCount++;
       }
     }
-    int maxScroll = 500000;
+    int maxScroll = dataRowCount * 25 - (SCREENY - 130);
     if (maxScroll < 0)
     {
       maxScroll = 0;
@@ -451,16 +331,6 @@ void updateDateOptions() {
     textAlign(RIGHT);
     text("Showing all ", cancelFilterButton.x - 10, cancelFilterButton.y + 15);
     text(showCancelled ? " flights" : "non-cancelled flights", cancelFilterButton.x - 10, cancelFilterButton.y + 32);  
-    if (!endOfFile) {
-    loadMoreButton.display();
-
-    if (isLoading) 
-    {
-    fill(0, 0, 200);
-    textAlign(CENTER);
-    text("Loading...", loadMoreButton.x + loadMoreButton.w / 2, loadMoreButton.y - 15);
-  }
-}
     
   }
   
@@ -714,11 +584,6 @@ void updateDateOptions() {
         }
       }
       yOffset += rowHeight;
-    }
-    if (loadMoreButton.isClicked(mouseX, mouseY) && !endOfFile && !isLoading) 
-    {
-      thread("loadMoreFlightsInBackground");
-      return;
     }
   }
   
