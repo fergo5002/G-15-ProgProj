@@ -1,3 +1,16 @@
+/*
+
+
+
+
+
+  FlyRadar - Flight Data Visualization Tool
+  Created by [Your Name] on [Date]
+  This program visualizes flight data using Processing.
+  It allows users to filter and view flight information, including a map and charts.
+*/
+
+
 // these are the main variables for our program
 Table table;  // stores all them flight data
 BarChartWidget barChart;  // makes those cool bar graphs
@@ -8,14 +21,11 @@ HomeScreen homeScreen;  // the welcome screen with the cool plane
 FlightScreen flightScreen;  // where all the magic happens lol
 ChartScreen chartScreen;  // shows them graphs
 mapScreen mapScreen;  // screen for selecting states
-loadingScreen loadingScreen;
-boolean showCancelled = true;  // this bad boi controls if we show cancelled flights or not
+boolean showCancelled = true;  // this controls if we show cancelled flights or not
 int SCREENX = 1200;  // screen dimensions - dont mess with these unless u want everything to break!!
 int SCREENY = 780;
-PFont sitkaFont;  // our pretty font
+PFont sitkaFont;  // our font
 PImage toyPlane;  // toy plane image for animations
-int loadingStartTime;
-boolean dataLoaded = false;
 
 void settings() 
 {
@@ -31,13 +41,6 @@ void settings()
 
 void setup() 
 {
-  loadingStartTime = millis();
-  currentScreen = new loadingScreen();
-  
-  thread("loadingDataIntoBackground");
-}
-
-void loadingDataIntoBackground(){
   sitkaFont = loadFont("Consolas.vlw");
   table = loadTable("flights.csv", "header");
   barChart = new BarChartWidget(100, 100, SCREENX - 200, SCREENY - 300, table);
@@ -45,11 +48,8 @@ void loadingDataIntoBackground(){
   flightScreen = new FlightScreen();
   chartScreen = new ChartScreen();
   mapScreen = new mapScreen();
- 
-  dataLoaded = true;
+  currentScreen = homeScreen;
 }
-
-
 
 void draw() 
 {
@@ -87,73 +87,6 @@ abstract class Screen
   
   void mouseWheel(MouseEvent event) 
   {
-  }
-}
-
-class loadingScreen extends Screen{
-  float progress = 0;
-  String status = "";
-  
-  void display() {
-    background(20, 20, 250);
-    
-    // Calculate progress (either time-based or completion-based)
-    float timeProgress = min(1.0, (millis() - loadingStartTime) / 5000.0);
-    progress = dataLoaded ? 1.0 : timeProgress * 0.9; // Cap at 90% until data loads
-    
-    // Draw loading text
-    fill(255);
-    textSize(40);
-    textAlign(CENTER, CENTER);
-    text("Loading Flight Data...", width/2, height/2 - 50);
-    
-    // Draw percentage text
-    textSize(24);
-    text(nf(progress * 100, 1, 1) + "%", width/2, height/2 + 80);
-    
-    // Draw progress bar
-    drawProgressBar(width/2 - 150, height/2, 300, 20, progress);
-    
-    // Transition when data is loaded and minimum time has passed
-    if (dataLoaded) {
-      status = "Loading complete!";
-    } else if (millis() - loadingStartTime > 6000) { // Timeout after 6 seconds
-      status = "Taking longer than expected...";
-    }
-    
-    fill(255);
-    textSize(40);
-    textAlign(CENTER, CENTER);
-    text(status, width/2, height/2 - 80);
-    
-    // Draw percentage text
-    textSize(24);
-    text(nf(progress * 100, 1, 1) + "%", width/2, height/2 + 80);
-    
-    // Draw progress bar
-    drawProgressBar(width/2 - 150, height/2, 300, 20, progress);
-    
-    // Transition when data is loaded and minimum time has passed
-    if (dataLoaded && millis() - loadingStartTime > 2000) {
-      currentScreen = homeScreen;
-    }
-  }
-  
-  void drawProgressBar(float x, float y, float w, float h, float p) {
-    // Background
-    noStroke();
-    fill(100);
-    rect(x, y, w, h, 10);
-    
-    // Foreground
-    fill(100, 200, 255);
-    rect(x, y, w * p, h, 10);
-    
-    // Outline
-    noFill();
-    stroke(255);
-    strokeWeight(2);
-    rect(x, y, w, h, 10);
   }
 }
 
@@ -327,8 +260,8 @@ class FlightScreen extends Screen
     fill(100);
     textSize(18);
     textAlign(RIGHT);
-    text("Showing all ", cancelFilterButton.x - 10, cancelFilterButton.y + 15);
-    text(showCancelled ? " flights" : "non-cancelled flights", cancelFilterButton.x - 10, cancelFilterButton.y + 32);  
+    text("Showing " + (showCancelled ? "all flights" : "only non-cancelled flights"), cancelFilterButton.x - 10, cancelFilterButton.y + 20);
+  
     
   }
   
@@ -656,21 +589,17 @@ class FlightScreen extends Screen
 class ChartScreen extends Screen 
 {
   ButtonWidget backButton;
-  ButtonWidget nextChartButton;
+  
   ChartScreen() 
-    {
-      backButton = new ButtonWidget(50, 10, 100, 30, "Back");
-      barChart.animationProgress = 0;
-      barChart.animating = true; 
-      nextChartButton = new ButtonWidget(180, 10, 150, 30, "Next Chart"); 
-    }
+  {
+    backButton = new ButtonWidget(50, 10, 100, 30, "Back");
+  }
   
   void display() 
   {
     background(240);
     barChart.display();
     backButton.display();
-    nextChartButton.display();
   }
   
   void mousePressed() 
@@ -678,11 +607,6 @@ class ChartScreen extends Screen
     if (backButton.isClicked(mouseX, mouseY))
     {
       currentScreen = flightScreen;
-    }
-    if (nextChartButton.isClicked(mouseX, mouseY)) 
-    {
-      currentScreen = new LineChartScreen();
-      return;
     }
   }
 }
@@ -781,15 +705,6 @@ class FlightMapScreen extends Screen
     textSize(18);
     textAlign(CENTER, CENTER);
     text(flightInfo, SCREENX/2, 40);
-    int cancelled  = flightRow.getInt("CANCELLED");
-
-    if ( cancelled == 1) {
-    fill (200,0,0); 
-    textSize(22); 
-    text("Flight did not leave the terminal (CANCELLED)", SCREENX / 2, SCREENY / 2);
-    return;
-  }
-
     String origin = flightRow.getString("ORIGIN");
     String dest = flightRow.getString("DEST");
 
@@ -918,38 +833,15 @@ class mapScreen extends Screen
   }
   
   void drawStateLabels() 
-{
-  textAlign(CENTER, CENTER);
-  textSize(12);
-  String[] stateAbbr = {
-    "WA", "OR", "CA", "NV", "ID", "MT", "WY", "UT", "AZ", "CO", "NM",
-    "ND", "SD", "NE", "KS", "OK", "TX",
-    "MN", "IA", "MO", "AR", "LA",
-    "WI", "IL", "MS", "AL",
-    "MI", "IN", "OH", "KY", "TN",
-    "FL", "GA", "SC", "NC", "VA", "WV",
-    "PA", "NY", "NJ", "DE", "MD", "CT", "MA", "VT", "NH", "ME",
-    "AK", "HI"
-  };
-  int[][] colors = {
-    {255, 34, 55}, {255, 248, 237}, {47, 49, 123}, {44, 41, 130}, {0, 173, 242}, {104, 51, 159},
-    {247, 148, 29}, {192, 31, 47}, {241, 0, 142}, {10, 147, 69}, {100, 163, 120},
-    {253, 175, 64}, {248, 237, 49}, {142, 198, 65}, {45, 55, 144}, {45, 55, 144}, {7, 167, 159},
-    {255, 176, 63}, {234, 235, 79}, {42, 54, 154}, {34, 171, 225}, {14, 165, 150},
-    {39, 32, 100}, {102, 44, 146}, {195, 181, 155}, {195, 181, 155},
-    {196, 153, 108}, {138, 93, 60}, {202, 189, 181}, {138, 93, 60}, {160, 30, 102},
-    {237, 27, 36}, {255, 189, 181}, {86, 50, 14}, {50, 50, 146}, {46, 48, 151}, {238, 0, 140},
-    {238, 64, 53}, {255, 255, 255}, {255, 145, 142}, {246, 62, 54}, {238, 65, 58}, {158, 31, 102}, {239, 43, 125}, {255, 255, 255}, {255, 225, 255}, {213, 49, 118},
-    {255, 255, 255}, {255, 255, 255}
-  };
-  
-  for (int i = 0; i < states.length; i++) {
-    fill(colors[i][0], colors[i][1], colors[i][2]);
-    ellipse(coords[i][0], coords[i][1], 30, 20); // Draw the colored state ellipse
-    fill(0);
-    text(states[i], coords[i][0], coords[i][1]);
+  {
+    textAlign(CENTER, CENTER);
+    textSize(12);
+    fill(255);
+    for (int i = 0; i < states.length; i++)
+    {
+      text(states[i], coords[i][0], coords[i][1]);
+    }
   }
-}
   
   void mousePressed() 
   {
@@ -1147,8 +1039,7 @@ class BarChartWidget extends Screen
 {
   // this makes those fancy graphs everyone loves
   // tbh the math here is pretty confusing but it works
-  float animationProgress = 0;
-  boolean animating = true;
+  
   int x, y, w, h;
   HashMap<String, Integer> flightCounts;  // counts how many flights each airline has
   HashMap<String, Integer> cancelledCounts;  // keeps track of the fails lol
@@ -1194,15 +1085,6 @@ class BarChartWidget extends Screen
     // warning: this function is a mess but it makes pretty charts
     // just dont touch anything and it'll be fine
     fill(240);
-    if (animating) 
-    {
-      animationProgress += 0.02;  
-        if (animationProgress >= 1) 
-        {
-         animationProgress = 1;
-          animating = false;
-        }
-    }
     rect(0, 0, SCREENX, SCREENY);
     fill(0, 0, 255);
     textSize(40);
@@ -1216,15 +1098,9 @@ class BarChartWidget extends Screen
       int flights = flightCounts.get(carrier);
       int cancelled = cancelledCounts.getOrDefault(carrier, 0);
       int diverted = divertedCounts.getOrDefault(carrier, 0);
-      int fullBarHeight = int(map(flights, 0, maxFlights, 0, h - 100));
-      int barHeight = int(fullBarHeight * animationProgress);
-
-      int fullCancelled = int(map(cancelled, 0, maxFlights, 0, h - 100));
-      int cancelledHeight = int(fullCancelled * animationProgress);
-
-      int fullDiverted = int(map(diverted, 0, maxFlights, 0, h - 100));
-      int divertedHeight = int(fullDiverted * animationProgress);      
-      
+      int barHeight = int(map(flights, 0, maxFlights, 0, h - 100));
+      int cancelledHeight = int(map(cancelled, 0, maxFlights, 0, h - 100));
+      int divertedHeight = int(map(diverted, 0, maxFlights, 0, h - 100));
       
       fill(100, 100, 255);
       rect(startX + index * barWidth, y + h - barHeight, barWidth - 5, barHeight);
@@ -1272,196 +1148,5 @@ class BarChartWidget extends Screen
     rect(SCREENX - 150, 160, 15, 15);
     fill(0);
     text("Diverted", SCREENX - 130, 173);
-  }
-}
-
-class LineChartScreen extends Screen {
-  ButtonWidget backButton;
-  ButtonWidget nextButton;
-  HashMap<String, Integer> dailyFlights = new HashMap<>();
-  int maxFlights = 0;
-
-  LineChartScreen() {
-    backButton = new ButtonWidget(50, 10, 100, 30, "Back");
-    nextButton = new ButtonWidget(180, 10, 150, 30, "Next Chart");
-
-    for (TableRow row : table.rows()) {
-      String date = row.getString("FL_DATE").split(" ")[0];
-      dailyFlights.put(date, dailyFlights.getOrDefault(date, 0) + 1);
-    }
-
-    for (int count : dailyFlights.values()) {
-      if (count > maxFlights) maxFlights = count;
-    }
-  }
-
-  void display() {
-    background(255);
-    fill(0);
-    textAlign(CENTER, CENTER);
-    textSize(30);
-    text("Flights Over Time", SCREENX / 2, 60);
-    drawLineChart();
-    backButton.display();
-    nextButton.display();
-  }
-
-  void mousePressed() {
-    if (backButton.isClicked(mouseX, mouseY)) {
-      currentScreen = chartScreen;
-    }
-    if (nextButton.isClicked(mouseX, mouseY)) {
-      currentScreen = new PieChartScreen();
-    }
-  }
-
-  void drawLineChart() {
-  int chartX = 100;
-  int chartY = 220;
-  int chartW = SCREENX - 200;
-  int chartH = 300;
-
-  ArrayList<String> sortedDates = new ArrayList<>(dailyFlights.keySet());
-  sortedDates.sort((a, b) -> a.compareTo(b));
-
-  // Axis lines (no top or right)
-  stroke(0);
-  strokeWeight(1);
-  line(chartX, chartY, chartX, chartY + chartH); // y-axis
-  line(chartX, chartY + chartH, chartX + chartW, chartY + chartH); // x-axis
-
-  // Y-axis label
-  fill(0);
-  textSize(16);
-  textAlign(CENTER, CENTER);
-  pushMatrix();
-  translate(chartX - 50, chartY + chartH / 2);
-  rotate(-HALF_PI);
-  text("Number of Flights", 0, 0);
-  popMatrix();
-
-  // Y-axis numbers (ticks)
-  int ySteps = 5;
-  textSize(12);
-  textAlign(RIGHT, CENTER);
-  for (int i = 0; i <= ySteps; i++) {
-    int yVal = int(map(i, 0, ySteps, 0, maxFlights));
-    float yPos = chartY + chartH - map(yVal, 0, maxFlights, 0, chartH);
-    stroke(200);
-    line(chartX - 5, yPos, chartX, yPos);  // tick
-    noStroke();
-    fill(0);
-    text(yVal, chartX - 10, yPos);
-  }
-
-  // Draw data line
-  int pointCount = sortedDates.size();
-  float spacing = chartW / (float)(pointCount - 1);
-
-  stroke(50, 150, 255);
-  strokeWeight(4);
-  noFill();
-  beginShape();
-  for (int i = 0; i < pointCount; i++) {
-    String date = sortedDates.get(i);
-    int val = dailyFlights.get(date);
-    float x = chartX + i * spacing;
-    float y = chartY + chartH - map(val, 0, maxFlights, 0, chartH);
-    vertex(x, y);
-  }
-  endShape();
-
-  // X-axis labels
-  fill(0);
-  textSize(12);
-  textAlign(CENTER);
-  for (int i = 0; i < pointCount; i += max(1, pointCount / 6)) {
-    String date = sortedDates.get(i);
-    float x = chartX + i * spacing;
-    text(date, x, chartY + chartH + 15);
-  }
-}
-}
-
-class PieChartScreen extends Screen {
-  ButtonWidget backButton;
-  HashMap<String, Integer> outcomeCounts = new HashMap<>();
-
-  PieChartScreen() {
-    backButton = new ButtonWidget(50, 10, 100, 30, "Back");
-
-    int onTime = 0;
-    int cancelled = 0;
-    int diverted = 0;
-
-    for (TableRow row : table.rows()) {
-      int c = row.getInt("CANCELLED");
-      int d = row.getInt("DIVERTED");
-      if (c == 1) cancelled++;
-      else if (d == 1) diverted++;
-      else onTime++;
-    }
-
-    outcomeCounts.put("On Time", onTime);
-    outcomeCounts.put("Cancelled", cancelled);
-    outcomeCounts.put("Diverted", diverted);
-  }
-
-  void display() {
-    background(255);
-    fill(0);
-    textAlign(CENTER, CENTER);
-    textSize(30);
-    text("Flight Outcome Distribution", SCREENX / 2, 60);
-    drawPieChart();
-    backButton.display();
-  }
-
-  void mousePressed() {
-    if (backButton.isClicked(mouseX, mouseY)) {
-      currentScreen = new LineChartScreen();
-    }
-  }
-
-  void drawPieChart() {
-    int centerX = SCREENX / 2;
-    int centerY = SCREENY / 2;
-    float radius = 160;
-
-    int total = 0;
-    for (int count : outcomeCounts.values()) total += count;
-
-    float angleStart = 0;
-    for (String label : outcomeCounts.keySet()) {
-      float value = outcomeCounts.get(label);
-      float angle = map(value, 0, total, 0, TWO_PI);
-
-      if (label.equals("On Time")) fill(100, 200, 100);
-      else if (label.equals("Cancelled")) fill(255, 100, 100);
-      else fill(100, 100, 255);
-
-      arc(centerX, centerY, radius * 2, radius * 2, angleStart, angleStart + angle);
-      angleStart += angle;
-    }
-
-    // Legend
-    int legendX = centerX + 200;
-    int legendY = centerY - 60;
-    int boxSize = 20;
-
-    textAlign(LEFT, CENTER);
-    textSize(16);
-    int i = 0;
-    for (String label : outcomeCounts.keySet()) {
-      int val = outcomeCounts.get(label);
-      if (label.equals("On Time")) fill(100, 200, 100);
-      else if (label.equals("Cancelled")) fill(255, 100, 100);
-      else fill(100, 100, 255);
-
-      rect(legendX, legendY + i * 30, boxSize, boxSize);
-      fill(0);
-      text(label + ": " + val, legendX + boxSize + 10, legendY + i * 30 + boxSize / 2);
-      i++;
-    }
   }
 }
