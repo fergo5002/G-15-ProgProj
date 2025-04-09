@@ -18,6 +18,11 @@ PFont sitkaFont;  // our pretty font
 PImage toyPlane;  // toy plane image for animations
 int loadingStartTime;
 boolean dataLoaded = false;
+PImage easterEgg;
+boolean showEasterEgg = false;
+PVector eggPosition;
+int eggWidth = 600;
+int eggHeight = 450;
 
 void settings() 
 {
@@ -29,6 +34,8 @@ void settings()
   usaMap.resize(SCREENX, SCREENY);      // resizing the size of the map to have it fit nicely into our program
   toyPlane = loadImage("toyPlane.png");  // loading the image of the toy plane into the program
   toyPlane.resize(51, 51);               //  resizing the size of the toy plane to have it fit nicely into our program
+  easterEgg = loadImage("easterEgg.png");  // Load Easter Egg image
+  easterEgg.resize(eggWidth, eggHeight);
   
 }
 
@@ -206,6 +213,10 @@ class HomeScreen extends Screen
     fill(pulseValue);
     textSize(18);
     text("Click Start to Explore Flight Data", SCREENX/2, SCREENY/2 + 150);
+        if (showEasterEgg) {
+    image(easterEgg, SCREENX - eggWidth - 20, SCREENY - eggHeight - 20);
+    eggPosition = new PVector(SCREENX - eggWidth - 20, SCREENY - eggHeight - 20);
+  }
   }
   
   void mousePressed() 
@@ -214,6 +225,11 @@ class HomeScreen extends Screen
     {
       currentScreen = flightScreen;
     }
+       if (!showEasterEgg && mouseX > SCREENX - 60 && mouseY > SCREENY - 60) {
+    showEasterEgg = true;
+  } else if (showEasterEgg && mouseX >= eggPosition.x && mouseX <= eggPosition.x + eggWidth && mouseY >= eggPosition.y && mouseY <= eggPosition.y + eggHeight) {
+    showEasterEgg = false;
+  }
   }
 }
 
