@@ -20,8 +20,7 @@ void setup()
   }
 }
 
-
-void draw() l
+void draw() 
 {
   background(255);
   fill(0);
@@ -59,7 +58,7 @@ void displayFlights()
     yOffset += 25;
   }
 }
-println("poo");  
+println("poo") 
 
 void mousePressed() 
 {
@@ -115,6 +114,11 @@ class DropdownWidget
         text(options.get(i), x + 10, y + (i + 2) * h - 5);
       }
     }
+  }
+
+  void planeFinder()
+  {
+   //poop poop poop
   }
 
   void checkClick(int mx, int my) 
