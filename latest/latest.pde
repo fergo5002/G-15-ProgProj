@@ -1461,6 +1461,8 @@ class LineChartScreen extends Screen {
 
 class PieChartScreen extends Screen {
   ButtonWidget backButton;
+  float animationProgress = 0;
+  boolean animating = true;
   HashMap<String, Integer> outcomeCounts = new HashMap<>();
 
   PieChartScreen() {
@@ -1484,60 +1486,78 @@ class PieChartScreen extends Screen {
   }
 
   void display() {
-    background(255);
-    fill(0);
-    textAlign(CENTER, CENTER);
-    textSize(30);
-    text("Flight Outcome Distribution", SCREENX / 2, 60);
-    drawPieChart();
-    backButton.display();
+  background(255);
+  fill(0);
+  textAlign(CENTER, CENTER);
+  textSize(30);
+  text("Flight Outcome Distribution", SCREENX / 2, 60);
+
+  if (animating) {
+    animationProgress += 0.02;
+    if (animationProgress >= 1) {
+      animationProgress = 1;
+      animating = false;
+    }
   }
 
+  drawPieChart(animationProgress);
+  backButton.display();
+}
+
   void mousePressed() {
+    animationProgress = 0;
+animating = true;
     if (backButton.isClicked(mouseX, mouseY)) {
       currentScreen = new LineChartScreen();
     }
   }
 
-  void drawPieChart() {
+  void drawPieChart(float progress) {
     int centerX = SCREENX / 2;
-    int centerY = SCREENY / 2;
-    float radius = 160;
+int centerY = SCREENY / 2;
+float radius = 160;
 
-    int total = 0;
-    for (int count : outcomeCounts.values()) total += count;
+int total = 0;
+for (int count : outcomeCounts.values()) total += count;
 
-    float angleStart = 0;
-    for (String label : outcomeCounts.keySet()) {
-      float value = outcomeCounts.get(label);
-      float angle = map(value, 0, total, 0, TWO_PI);
+float angleStart = 0;
+float totalAngleDrawn = TWO_PI * progress;
 
-      if (label.equals("On Time")) fill(100, 200, 100);
-      else if (label.equals("Cancelled")) fill(255, 100, 100);
-      else fill(100, 100, 255);
+for (String label : outcomeCounts.keySet()) {
+  float value = outcomeCounts.get(label);
+  float angle = map(value, 0, total, 0, TWO_PI);
 
-      arc(centerX, centerY, radius * 2, radius * 2, angleStart, angleStart + angle);
-      angleStart += angle;
-    }
+  if (angleStart >= totalAngleDrawn) break;
 
-    // Legend
-    int legendX = centerX + 200;
-    int legendY = centerY - 60;
-    int boxSize = 20;
+  float endAngle = min(angleStart + angle, totalAngleDrawn);
 
-    textAlign(LEFT, CENTER);
-    textSize(16);
-    int i = 0;
-    for (String label : outcomeCounts.keySet()) {
-      int val = outcomeCounts.get(label);
-      if (label.equals("On Time")) fill(100, 200, 100);
-      else if (label.equals("Cancelled")) fill(255, 100, 100);
-      else fill(100, 100, 255);
+  if (label.equals("On Time")) fill(100, 200, 100);
+  else if (label.equals("Cancelled")) fill(255, 100, 100);
+  else fill(100, 100, 255);
 
-      rect(legendX, legendY + i * 30, boxSize, boxSize);
-      fill(0);
-      text(label + ": " + val, legendX + boxSize + 10, legendY + i * 30 + boxSize / 2);
-      i++;
+  arc(centerX, centerY, radius * 2, radius * 2, angleStart, endAngle);
+  angleStart += angle;
+}
+
+// Legend
+int legendX = centerX + 200;
+int legendY = centerY - 60;
+int boxSize = 20;
+
+textAlign(LEFT, CENTER);
+textSize(16);
+int i = 0;
+for (String label : outcomeCounts.keySet()) {
+  int val = outcomeCounts.get(label);
+  if (label.equals("On Time")) fill(100, 200, 100);
+  else if (label.equals("Cancelled")) fill(255, 100, 100);
+  else fill(100, 100, 255);
+
+  rect(legendX, legendY + i * 30, boxSize, boxSize);
+  fill(0);
+  text(label + ": " + val, legendX + boxSize + 10, legendY + i * 30 + boxSize / 2);
+  i++;
+}
     }
   }
 }
