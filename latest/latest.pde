@@ -1560,4 +1560,3 @@ for (String label : outcomeCounts.keySet()) {
 }
     }
   }
-}
