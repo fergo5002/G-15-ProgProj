@@ -1,4 +1,8 @@
-Read me test.
-Can you add a read me to the Todo list in the project?
-Here is the video and executables:
-https://1drv.ms/f/c/6fa7227074b6a640/EkqXH37LElJPk-sOPmosw8sBZwBDn6fWYSkWxF9JAbXQbQ?e=wGyKXU
+To run latest.pde, you need to ensure you have the data folder, this folder contains:
+easterEgg.png
+flights.csv
+loadingVideo.mp4
+plane-photo(1).jpg
+theFont.vlw
+toyPlane.png
+usaMap.png
